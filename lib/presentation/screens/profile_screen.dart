@@ -4,6 +4,8 @@ import 'package:app_truyen_tranh/logic/auth_bloc/auth_event.dart';
 import 'package:app_truyen_tranh/data/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+// Thêm import AppState để chuyển tab
+import 'package:app_truyen_tranh/core/app_state.dart'; 
 import 'auth/login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -23,10 +25,9 @@ class _ProfileScreenState extends State<ProfileScreen> with AutomaticKeepAliveCl
     super.build(context);
     final authService = AuthService();
 
-    // Định nghĩa bảng màu cố định theo thiết kế
-    const Color backgroundDark = Color(0xFF121212); // Màu nền tối chủ đạo
-    const Color cardGrey = Color(0xFF1E1E1E);      // Màu card menu
-    const Color accentRed = Color(0xFFFF5252);     // Đỏ accent
+    const Color backgroundDark = Color(0xFF121212);
+    const Color cardGrey = Color(0xFF1E1E1E);
+    const Color accentRed = Color(0xFFFF5252);
 
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
@@ -34,14 +35,14 @@ class _ProfileScreenState extends State<ProfileScreen> with AutomaticKeepAliveCl
         String? currentUid = state is AuthAuthenticated ? state.uid : null;
 
         return Scaffold(
-          backgroundColor: backgroundDark, // Cố định màu nền tối
+          backgroundColor: backgroundDark,
           body: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
             child: Column(
               children: [
-                const SizedBox(height: 50), // Tăng khoảng cách trên cùng
+                const SizedBox(height: 50),
 
-                // --- CARD THÔNG TIN CÁ NHÂN (Màu Đỏ Gradient) ---
+                // --- CARD THÔNG TIN CÁ NHÂN ---
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 15),
                   child: Container(
@@ -128,22 +129,31 @@ class _ProfileScreenState extends State<ProfileScreen> with AutomaticKeepAliveCl
 
                 const SizedBox(height: 25),
 
-                // --- MENU TÙY CHỌN (Màu Xám Đậm Cố Định) ---
+                // --- MENU TÙY CHỌN (Đã thêm logic điều hướng) ---
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 15),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: cardGrey, // Cố định màu Card tối
+                      color: cardGrey,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Column(
                       children: [
-                        _buildMenuItem(Icons.history, "Lịch sử đọc truyện", () {}),
+                        // Chuyển đến tab Lịch sử (Giả định tab 1)
+                        _buildMenuItem(Icons.favorite_outline, "Truyện đang theo dõi", () {
+                          AppState.changeTab(1, context);
+                        }),
                         const Divider(color: Colors.white10, height: 1, indent: 55),
-                        _buildMenuItem(Icons.favorite_outline, "Truyện đang theo dõi", () {}),
+                        
+                        // Chuyển đến tab Yêu thích (Giả định tab 2)
+                        _buildMenuItem(Icons.history, "Lịch sử đọc truyện", () {
+                          AppState.changeTab(2, context);
+                        }),
                         const Divider(color: Colors.white10, height: 1, indent: 55),
+                        
                         _buildMenuItem(Icons.settings_outlined, "Cài đặt ứng dụng", () {}),
                         const Divider(color: Colors.white10, height: 1, indent: 55),
+                        
                         _buildMenuItem(Icons.help_outline, "Hỗ trợ & Góp ý", () {}),
                       ],
                     ),
@@ -152,7 +162,7 @@ class _ProfileScreenState extends State<ProfileScreen> with AutomaticKeepAliveCl
 
                 const SizedBox(height: 25),
 
-                // --- NÚT ĐĂNG XUẤT (Màu Card tối, Chữ đỏ) ---
+                // --- NÚT ĐĂNG XUẤT ---
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 15),
                   child: Material(

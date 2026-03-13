@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
+
 import 'firebase_options.dart';
 
 // Core & Theme
@@ -16,7 +18,7 @@ import 'data/services/auth_service.dart';
 // Logic Layer
 import 'logic/auth_bloc/auth_bloc.dart';
 import 'logic/auth_bloc/auth_event.dart';
-import 'logic/auth_bloc/auth_state.dart'; 
+import 'logic/auth_bloc/auth_state.dart';
 import 'logic/manga_bloc/manga_bloc.dart';
 import 'logic/manga_bloc/manga_event.dart';
 import 'logic/search_bloc/search_bloc.dart';
@@ -32,28 +34,26 @@ import 'presentation/screens/auth/login_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   final dbHelper = DatabaseHelper();
 
   // Cấu hình Database cho Web/Desktop
   if (kIsWeb) {
     databaseFactory = databaseFactoryFfiWeb;
-  } else if (defaultTargetPlatform == TargetPlatform.windows || 
-             defaultTargetPlatform == TargetPlatform.linux || 
-             defaultTargetPlatform == TargetPlatform.macOS) {
+  } else if (defaultTargetPlatform == TargetPlatform.windows ||
+      defaultTargetPlatform == TargetPlatform.linux ||
+      defaultTargetPlatform == TargetPlatform.macOS) {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
   }
 
   // Khởi tạo Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   final authService = AuthService();
-  
+
   try {
-    await dbHelper.database; 
+    await dbHelper.database;
     await dbHelper.seedData();
   } catch (e) {
     debugPrint("Lỗi Database: $e");
@@ -72,10 +72,15 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider<ThemeBloc>(create: (context) => ThemeBloc()),
-        BlocProvider<ThemeBloc>(create: (context) => ThemeBloc()..add(LoadThemeEvent())), // Thêm dòng này
-        BlocProvider<AuthBloc>(create: (context) => AuthBloc(authService)..add(AuthCheckRequested())),
-        BlocProvider<MangaBloc>(create: (context) => MangaBloc(dbHelper)..add(LoadMangaEvent())),
+        BlocProvider<ThemeBloc>(
+          create: (context) => ThemeBloc()..add(LoadThemeEvent()),
+        ), // Thêm dòng này
+        BlocProvider<AuthBloc>(
+          create: (context) => AuthBloc(authService)..add(AuthCheckRequested()),
+        ),
+        BlocProvider<MangaBloc>(
+          create: (context) => MangaBloc(dbHelper)..add(LoadMangaEvent()),
+        ),
         BlocProvider<CategoryBloc>(create: (context) => CategoryBloc(dbHelper)),
         BlocProvider<SearchBloc>(create: (context) => SearchBloc(dbHelper)),
         BlocProvider<FavoriteBloc>(create: (context) => FavoriteBloc(dbHelper)),
@@ -114,7 +119,9 @@ class AuthWrapper extends StatelessWidget {
           return const HomeScreen();
         }
         if (state is AuthLoading) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
         }
         return const LoginScreen();
       },

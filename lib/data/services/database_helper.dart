@@ -1,10 +1,11 @@
-import 'package:app_truyen_tranh/core/manga_images/solo_leveling_ragnarok/chapter.dart';
-import 'package:app_truyen_tranh/core/manga_images/tinh_giap_hon_tuong/chapter.dart';
-import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
-import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
+import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
+
+import '../../core/manga_images/tinh_giap_hon_tuong/chapter.dart';
+import '../../core/manga_images/solo_leveling_ragnarok/chapter.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -26,7 +27,7 @@ class DatabaseHelper {
     if (kIsWeb) {
       dbFactory = databaseFactoryFfiWeb;
       // Đổi v5 thành v6 để ép trình duyệt tạo mới bảng có cột genres
-      path = 'manga_app_v8_persistent.db'; 
+      path = 'manga_app_v8_persistent.db';
     } else {
       dbFactory = databaseFactory;
       path = join(await getDatabasesPath(), 'manga_app_v8.db');
@@ -38,7 +39,7 @@ class DatabaseHelper {
       path,
       options: OpenDatabaseOptions(
         version: 1, // Reset version về 1 cho db mới
-        onCreate: _onCreate
+        onCreate: _onCreate,
       ),
     );
   }

@@ -22,16 +22,20 @@ class AuthService {
   }
 
   // --- ĐĂNG KÝ ---
-  Future<void> signUp({required String email, required String password, required String username}) async {
+  Future<void> signUp({
+    required String email,
+    required String password,
+    required String username,
+  }) async {
     final credential = await _firebaseAuth.createUserWithEmailAndPassword(
-      email: email, 
-      password: password
+      email: email,
+      password: password,
     );
 
     if (credential.user != null) {
       // Cập nhật DisplayName trong Firebase thay vì lưu vào Supabase
       await credential.user!.updateDisplayName(username);
-      
+
       // Gợi ý: Bạn có thể lưu thêm vào bảng 'users' trong SQLite nếu muốn dùng offline
       // await DatabaseHelper().insertUser({'uid': credential.user!.uid, 'username': username});
     }
