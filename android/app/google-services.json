@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "885842410300",
+    "project_id": "app-truyen-tranh-db2b0",
+    "storage_bucket": "app-truyen-tranh-db2b0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:885842410300:android:57cdb3cc084a9cac4a7c39",
+        "android_client_info": {
+          "package_name": "com.example.app_truyen_tranh"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCYewZa9DJvM2922MGRuEQ-Uy5L_iDn_hw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
