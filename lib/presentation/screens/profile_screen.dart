@@ -4,8 +4,9 @@ import 'package:app_truyen_tranh/logic/auth_bloc/auth_event.dart';
 import 'package:app_truyen_tranh/data/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../Admin_screens/admin_management_screen.dart';
 // Thêm import AppState để chuyển tab
-import 'package:app_truyen_tranh/core/app_state.dart'; 
+import 'package:app_truyen_tranh/core/app_state.dart';
 import 'auth/login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -15,8 +16,8 @@ class ProfileScreen extends StatefulWidget {
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> with AutomaticKeepAliveClientMixin {
-  
+class _ProfileScreenState extends State<ProfileScreen>
+    with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
 
@@ -74,7 +75,11 @@ class _ProfileScreenState extends State<ProfileScreen> with AutomaticKeepAliveCl
                           child: const CircleAvatar(
                             radius: 35,
                             backgroundColor: backgroundDark,
-                            child: Icon(Icons.person, size: 40, color: Colors.white),
+                            child: Icon(
+                              Icons.person,
+                              size: 40,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 20),
@@ -86,26 +91,42 @@ class _ProfileScreenState extends State<ProfileScreen> with AutomaticKeepAliveCl
                                 FutureBuilder<Map<String, dynamic>?>(
                                   future: authService.getUserProfile(),
                                   builder: (context, snapshot) {
-                                    final String name = snapshot.data?['username'] ?? "Người dùng DNU";
+                                    final String name =
+                                        snapshot.data?['username'] ??
+                                        "Người dùng DNU";
                                     return Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           name,
                                           style: const TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 22,
-                                              fontWeight: FontWeight.bold),
+                                            color: Colors.white,
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                         ),
                                         const SizedBox(height: 5),
                                         Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white.withOpacity(0.2),
-                                            borderRadius: BorderRadius.circular(10),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 2,
                                           ),
-                                          child: const Text("Đã xác thực",
-                                              style: TextStyle(color: Colors.white, fontSize: 11)),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white.withOpacity(
+                                              0.2,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
+                                          ),
+                                          child: const Text(
+                                            "Đã xác thực",
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 11,
+                                            ),
+                                          ),
                                         ),
                                       ],
                                     );
@@ -115,9 +136,10 @@ class _ProfileScreenState extends State<ProfileScreen> with AutomaticKeepAliveCl
                                 const Text(
                                   "Khách ẩn danh",
                                   style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold),
+                                    color: Colors.white,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                             ],
                           ),
@@ -139,22 +161,61 @@ class _ProfileScreenState extends State<ProfileScreen> with AutomaticKeepAliveCl
                     ),
                     child: Column(
                       children: [
+                        if (state is AuthAuthenticated &&
+                            state.role == "admin")
+                          _buildMenuItem(
+                            Icons.admin_panel_settings,
+                            "Admin Management",
+                            () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const AdminManagementScreen(),
+                                ),
+                              );
+                            },
+                          ),
+
                         // Chuyển đến tab Lịch sử (Giả định tab 1)
-                        _buildMenuItem(Icons.favorite_outline, "Truyện đang theo dõi", () {
-                          AppState.changeTab(1, context);
-                        }),
-                        const Divider(color: Colors.white10, height: 1, indent: 55),
-                        
+                        _buildMenuItem(
+                          Icons.favorite_outline,
+                          "Truyện đang theo dõi",
+                          () {
+                            AppState.changeTab(1, context);
+                          },
+                        ),
+                        const Divider(
+                          color: Colors.white10,
+                          height: 1,
+                          indent: 55,
+                        ),
+
                         // Chuyển đến tab Yêu thích (Giả định tab 2)
                         _buildMenuItem(Icons.history, "Lịch sử đọc truyện", () {
                           AppState.changeTab(2, context);
                         }),
-                        const Divider(color: Colors.white10, height: 1, indent: 55),
-                        
-                        _buildMenuItem(Icons.settings_outlined, "Cài đặt ứng dụng", () {}),
-                        const Divider(color: Colors.white10, height: 1, indent: 55),
-                        
-                        _buildMenuItem(Icons.help_outline, "Hỗ trợ & Góp ý", () {}),
+                        const Divider(
+                          color: Colors.white10,
+                          height: 1,
+                          indent: 55,
+                        ),
+
+                        _buildMenuItem(
+                          Icons.settings_outlined,
+                          "Cài đặt ứng dụng",
+                          () {},
+                        ),
+                        const Divider(
+                          color: Colors.white10,
+                          height: 1,
+                          indent: 55,
+                        ),
+
+                        _buildMenuItem(
+                          Icons.help_outline,
+                          "Hỗ trợ & Góp ý",
+                          () {},
+                        ),
                       ],
                     ),
                   ),
@@ -175,11 +236,15 @@ class _ProfileScreenState extends State<ProfileScreen> with AutomaticKeepAliveCl
                         } else {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => const LoginScreen()),
+                            MaterialPageRoute(
+                              builder: (context) => const LoginScreen(),
+                            ),
                           );
                         }
                       },
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
                       leading: Icon(
                         isLoggedIn ? Icons.logout_rounded : Icons.login_rounded,
                         color: accentRed,
@@ -206,8 +271,15 @@ class _ProfileScreenState extends State<ProfileScreen> with AutomaticKeepAliveCl
   Widget _buildMenuItem(IconData icon, String title, VoidCallback onTap) {
     return ListTile(
       leading: Icon(icon, color: Colors.white70),
-      title: Text(title, style: const TextStyle(color: Colors.white, fontSize: 15)),
-      trailing: const Icon(Icons.chevron_right, color: Colors.white24, size: 20),
+      title: Text(
+        title,
+        style: const TextStyle(color: Colors.white, fontSize: 15),
+      ),
+      trailing: const Icon(
+        Icons.chevron_right,
+        color: Colors.white24,
+        size: 20,
+      ),
       onTap: onTap,
     );
   }

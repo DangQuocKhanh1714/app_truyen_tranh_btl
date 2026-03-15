@@ -3,7 +3,6 @@ import 'package:path/path.dart';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
-
 import '../../core/manga_images/tinh_giap_hon_tuong/chapter.dart';
 import '../../core/manga_images/solo_leveling_ragnarok/chapter.dart';
 
@@ -145,6 +144,11 @@ class DatabaseHelper {
         FOREIGN KEY (manga_id) REFERENCES mangas (id) ON DELETE CASCADE
       )
     ''');
+  }
+
+  Future<int> deleteComment(int id) async {
+    final db = await database;
+    return await db.delete('comments', where: 'id = ?', whereArgs: [id]);
   }
 
   // --- 2. HÀM ĐỔ DỮ LIỆU MẪU (SEED DATA) ---
@@ -519,27 +523,30 @@ class DatabaseHelper {
     );
   }
 
-  Future<List<Map<String, dynamic>>> fetchComments(int mangaId) async {
+  Future<int> addComment(int mangaId, String userId, String content) async {
     final db = await database;
-    return await db.rawQuery(
-      '''
-      SELECT c.*, u.username FROM comments c
-      LEFT JOIN users u ON c.user_id = u.id
-      WHERE c.manga_id = ?
-      ORDER BY c.created_at DESC
-    ''',
-      [mangaId],
-    );
-  }
 
-  Future<void> addComment(int mangaId, String content) async {
-    final db = await database;
-    await db.insert('comments', {
+    return await db.insert('comments', {
       'manga_id': mangaId,
-      'user_id': currentUserId,
+      'user_id': userId,
       'content': content,
       'created_at': DateTime.now().toIso8601String(),
     });
+  }
+
+  Future<List<Map<String, dynamic>>> fetchComments(int mangaId) async {
+    final db = await database;
+
+    return await db.rawQuery(
+      '''
+  SELECT comments.*, users.username
+  FROM comments
+  JOIN users ON users.id = comments.user_id
+  WHERE manga_id = ?
+  ORDER BY created_at DESC
+  ''',
+      [mangaId],
+    );
   }
 
   Future<List<String>> fetchCategories() async {
@@ -601,9 +608,33 @@ class DatabaseHelper {
   }
 
   // CREATE: Thêm truyện mới
-  Future<int> insertManga(Map<String, dynamic> row) async {
+  Future<int> insertManga(Map<String, dynamic> mangaData) async {
     final db = await database;
-    return await db.insert('mangas', row);
+
+    final userId = currentUserId;
+
+    if (userId == 'guest') {
+      throw Exception("User not logged in");
+    }
+
+    final user = await db.query(
+      'users',
+      where: 'firebase_uid = ?',
+      whereArgs: [userId],
+      limit: 1,
+    );
+
+    if (user.isEmpty) {
+      throw Exception("User not found in database");
+    }
+
+    final role = user.first['role'];
+
+    if (role != 'admin') {
+      throw Exception("Permission denied: admin only");
+    }
+
+    return await db.insert('mangas', mangaData);
   }
 
   // DELETE: Xóa truyện (Nhớ dùng CASCADE cho chapters nếu cần)

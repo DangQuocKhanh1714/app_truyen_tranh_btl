@@ -1,4 +1,5 @@
 import 'package:app_truyen_tranh/core/constants.dart';
+import 'package:app_truyen_tranh/presentation/Admin_screens/admin_management_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../logic/auth_bloc/auth_bloc.dart';
@@ -30,12 +31,29 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
+        // if (state is AuthAuthenticated) {
+        //   // ĐIỀU HƯỚNG: Sử dụng MaterialPageRoute nếu bạn chưa định nghĩa routes trong main.dart
+        //   Navigator.of(context).pushAndRemoveUntil(
+        //     MaterialPageRoute(builder: (context) => const HomeScreen()),
+        //     (route) => false,
+        //   );
+        // }
         if (state is AuthAuthenticated) {
-          // ĐIỀU HƯỚNG: Sử dụng MaterialPageRoute nếu bạn chưa định nghĩa routes trong main.dart
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
-            (route) => false,
-          );
+          final user = state;
+
+          if (user.role == "admin") {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(
+                builder: (context) => const AdminManagementScreen(),
+              ),
+              (route) => false,
+            );
+          } else {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => const HomeScreen()),
+              (route) => false,
+            );
+          }
         }
         if (state is AuthError) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -49,10 +67,7 @@ class _LoginScreenState extends State<LoginScreen> {
       },
       child: Scaffold(
         backgroundColor: const Color(0xFF121212),
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-        ),
+        appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
         body: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(

@@ -1,4 +1,4 @@
-import 'package:app_truyen_tranh/presentation/Admin_screens/admin_management_screen.dart';
+// import 'package:app_truyen_tranh/presentation/Admin_screens/admin_management_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/app_state.dart';
@@ -21,7 +21,6 @@ import 'history_screen.dart';
 import 'profile_screen.dart';
 import 'category_result_screen.dart';
 import 'manga_detail_screen.dart';
-
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -79,7 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
         }
 
         final List<Widget> _screens = [
-          _buildHomeContent(isAdmin), 
+          _buildHomeContent(isAdmin),
           const FavoriteScreen(),
           const HistoryScreen(),
           const ProfileScreen(),
@@ -89,13 +88,12 @@ class _HomeScreenState extends State<HomeScreen> {
           backgroundColor: theme.scaffoldBackgroundColor,
           body: Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: AppConstants.maxContentWidth),
+              constraints: const BoxConstraints(
+                maxWidth: AppConstants.maxContentWidth,
+              ),
               child: Stack(
                 children: [
-                  IndexedStack(
-                    index: _selectedIndex,
-                    children: _screens,
-                  ),
+                  IndexedStack(index: _selectedIndex, children: _screens),
                   Positioned(
                     left: 0,
                     right: 0,
@@ -137,7 +135,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildHomeContent(bool isAdmin) {
     return BlocBuilder<SearchBloc, SearchState>(
       builder: (context, searchState) {
-        final showSuggestions = _searchController.text.isNotEmpty && searchState is SearchLoaded;
+        final showSuggestions =
+            _searchController.text.isNotEmpty && searchState is SearchLoaded;
 
         return Stack(
           children: [
@@ -163,10 +162,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: InkWell(
                         onTap: () {
                           // --- ĐIỀU HƯỚNG ĐẾN ADMIN MANAGEMENT ---
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const AdminManagementScreen()),
-                          );
+                          // Navigator.push(
+                          //   context,
+                          //   MaterialPageRoute(builder: (_) => const AdminManagementScreen()),
+                          // );
                         },
                         child: Container(
                           padding: const EdgeInsets.all(16),
@@ -180,7 +179,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 color: Colors.black.withOpacity(0.1),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
-                              )
+                              ),
                             ],
                           ),
                           child: Row(
@@ -191,7 +190,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                   color: Colors.white.withOpacity(0.2),
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(Icons.admin_panel_settings, color: Colors.amber, size: 28),
+                                child: const Icon(
+                                  Icons.admin_panel_settings,
+                                  color: Colors.amber,
+                                  size: 28,
+                                ),
                               ),
                               const SizedBox(width: 15),
                               Expanded(
@@ -200,16 +203,27 @@ class _HomeScreenState extends State<HomeScreen> {
                                   children: const [
                                     Text(
                                       "Bảng điều khiển Admin",
-                                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
                                     ),
                                     Text(
                                       "Quản lý truyện, chương và người dùng",
-                                      style: TextStyle(color: Colors.white70, fontSize: 12),
+                                      style: TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 12,
+                                      ),
                                     ),
                                   ],
                                 ),
                               ),
-                              const Icon(Icons.arrow_forward_ios, color: Colors.white54, size: 16),
+                              const Icon(
+                                Icons.arrow_forward_ios,
+                                color: Colors.white54,
+                                size: 16,
+                              ),
                             ],
                           ),
                         ),
@@ -253,17 +267,23 @@ class _HomeScreenState extends State<HomeScreen> {
             leading: ClipRRect(
               borderRadius: BorderRadius.circular(4),
               child: Image.network(
-                manga.imageUrl, 
-                width: 35, 
-                height: 35, 
+                manga.imageUrl,
+                width: 35,
+                height: 35,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 35),
+                errorBuilder: (_, __, ___) =>
+                    const Icon(Icons.broken_image, size: 35),
               ),
             ),
             title: Text(manga.title, style: const TextStyle(fontSize: 13)),
             onTap: () {
               _searchController.clear();
-              Navigator.push(context, MaterialPageRoute(builder: (_) => MangaDetailScreen(manga: manga)));
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => MangaDetailScreen(manga: manga),
+                ),
+              );
             },
           );
         },
@@ -291,7 +311,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           );
         }
-        return const SliverFillRemaining(child: Center(child: CircularProgressIndicator()));
+        return const SliverFillRemaining(
+          child: Center(child: CircularProgressIndicator()),
+        );
       },
     );
   }
@@ -302,20 +324,36 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: Theme.of(context).cardColor,
       isScrollControlled: true,
       constraints: const BoxConstraints(maxWidth: AppConstants.maxContentWidth),
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(25))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+      ),
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.5,
         expand: false,
         builder: (_, controller) => Column(
           children: [
             const SizedBox(height: 12),
-            Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
-            const Padding(padding: EdgeInsets.all(15), child: Text("Khám phá thể loại", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.all(15),
+              child: Text(
+                "Khám phá thể loại",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
             Expanded(
               child: FutureBuilder<List<String>>(
                 future: DatabaseHelper().fetchCategories(),
                 builder: (context, snapshot) {
-                  if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+                  if (!snapshot.hasData)
+                    return const Center(child: CircularProgressIndicator());
                   return ListView.builder(
                     controller: controller,
                     itemCount: snapshot.data!.length,
@@ -323,7 +361,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       title: Text(snapshot.data![index]),
                       onTap: () {
                         Navigator.pop(context);
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => CategoryResultScreen(categoryName: snapshot.data![index])));
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => CategoryResultScreen(
+                              categoryName: snapshot.data![index],
+                            ),
+                          ),
+                        );
                       },
                     ),
                   );

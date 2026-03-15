@@ -8,12 +8,13 @@ class CommentBloc extends Bloc<CommentEvent, CommentState> {
   final DatabaseHelper dbHelper;
 
   CommentBloc(this.dbHelper) : super(CommentInitial()) {
-    
     // Xử lý tải danh sách bình luận
     on<LoadComments>((event, emit) async {
       emit(CommentLoading());
       try {
-        final List<Map<String, dynamic>> data = await dbHelper.fetchComments(event.mangaId);
+        final List<Map<String, dynamic>> data = await dbHelper.fetchComments(
+          event.mangaId,
+        );
         final comments = data.map((e) => CommentModel.fromMap(e)).toList();
         emit(CommentLoaded(comments));
       } catch (e) {
@@ -24,7 +25,11 @@ class CommentBloc extends Bloc<CommentEvent, CommentState> {
     // Xử lý gửi bình luận mới
     on<AddComment>((event, emit) async {
       try {
-        await dbHelper.addComment(event.mangaId, event.content);
+        await dbHelper.addComment(
+          event.mangaId,
+          dbHelper.currentUserId,
+          event.content,
+        );
         // Sau khi thêm thành công, tự động load lại danh sách mới nhất
         add(LoadComments(event.mangaId));
       } catch (e) {

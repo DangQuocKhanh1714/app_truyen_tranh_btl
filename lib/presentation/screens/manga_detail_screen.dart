@@ -26,6 +26,7 @@ class _MangaDetailScreenState extends State<MangaDetailScreen> {
   bool _isFavorite = false;
   bool _isLoadingFavorite = false;
   final TextEditingController _searchController = TextEditingController();
+  final TextEditingController _commentController = TextEditingController();
 
   @override
   void initState() {
@@ -253,6 +254,7 @@ class _MangaDetailScreenState extends State<MangaDetailScreen> {
                       ),
                     ),
                     _buildChapterListSliver(),
+                    _buildCommentSection(),
                     const SliverToBoxAdapter(child: SizedBox(height: 120)),
                   ],
                 ),
@@ -315,7 +317,11 @@ class _MangaDetailScreenState extends State<MangaDetailScreen> {
           const SizedBox(height: 12),
           Row(
             children: [
-              const Icon(Icons.person_outline, color: Colors.redAccent, size: 18),
+              const Icon(
+                Icons.person_outline,
+                color: Colors.redAccent,
+                size: 18,
+              ),
               const SizedBox(width: 8),
               Text(
                 "Tác giả: ${manga.author}",
@@ -329,7 +335,8 @@ class _MangaDetailScreenState extends State<MangaDetailScreen> {
               const Icon(Icons.update, color: Colors.blueAccent, size: 18),
               const SizedBox(width: 8),
               Text(
-                (widget.manga.latestChapter.isEmpty || widget.manga.latestChapter == 'null')
+                (widget.manga.latestChapter.isEmpty ||
+                        widget.manga.latestChapter == 'null')
                     ? "Trạng thái: Đang cập nhật"
                     : "Mới nhất: ${widget.manga.latestChapter}",
                 style: const TextStyle(
@@ -379,8 +386,8 @@ class _MangaDetailScreenState extends State<MangaDetailScreen> {
           color: _isFavorite
               ? Colors.redAccent
               : (isDark
-                  ? Colors.white.withOpacity(0.05)
-                  : Colors.black.withOpacity(0.05)),
+                    ? Colors.white.withOpacity(0.05)
+                    : Colors.black.withOpacity(0.05)),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: _isFavorite
@@ -393,14 +400,18 @@ class _MangaDetailScreenState extends State<MangaDetailScreen> {
           children: [
             Icon(
               _isFavorite ? Icons.favorite : Icons.favorite_border,
-              color: _isFavorite ? Colors.white : Theme.of(context).iconTheme.color,
+              color: _isFavorite
+                  ? Colors.white
+                  : Theme.of(context).iconTheme.color,
               size: 20,
             ),
             const SizedBox(width: 10),
             Text(
               _isFavorite ? "Đã theo dõi" : "Thêm vào yêu thích",
               style: TextStyle(
-                color: _isFavorite ? Colors.white : Theme.of(context).textTheme.bodyLarge?.color,
+                color: _isFavorite
+                    ? Colors.white
+                    : Theme.of(context).textTheme.bodyLarge?.color,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -465,13 +476,17 @@ class _MangaDetailScreenState extends State<MangaDetailScreen> {
                   size: 20,
                 ),
                 onTap: () async {
-                  await DatabaseHelper().saveHistory(widget.manga.id, chapter.id);
+                  await DatabaseHelper().saveHistory(
+                    widget.manga.id,
+                    chapter.id,
+                  );
                   if (mounted) {
                     context.read<HistoryBloc>().add(LoadHistoryEvent());
                     final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ChapterDetailScreen(chapter: chapter),
+                        builder: (context) =>
+                            ChapterDetailScreen(chapter: chapter),
                       ),
                     );
                     if (result == true) _checkFavoriteStatus();
@@ -489,7 +504,8 @@ class _MangaDetailScreenState extends State<MangaDetailScreen> {
     return FutureBuilder<List<String>>(
       future: DatabaseHelper().fetchMangaCategories(widget.manga.id),
       builder: (context, snapshot) {
-        if (!snapshot.hasData || snapshot.data!.isEmpty) return const SizedBox.shrink();
+        if (!snapshot.hasData || snapshot.data!.isEmpty)
+          return const SizedBox.shrink();
         return Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -521,6 +537,99 @@ class _MangaDetailScreenState extends State<MangaDetailScreen> {
       ),
     );
   }
+
+  Widget _buildCommentSection() {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Bình luận",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+
+            const SizedBox(height: 10),
+
+            FutureBuilder(
+              future: DatabaseHelper().fetchComments(widget.manga.id),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                }
+
+                final comments = snapshot.data as List;
+
+                if (comments.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.all(10),
+                    child: Text("Chưa có bình luận"),
+                  );
+                }
+
+                return ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: comments.length,
+                  itemBuilder: (context, index) {
+                    final c = comments[index];
+
+                    return ListTile(
+                      leading: const Icon(Icons.person),
+                      title: Text(c['username'] ?? "User"),
+                      subtitle: Text(c['content']),
+                    );
+                  },
+                );
+              },
+            ),
+
+            const SizedBox(height: 10),
+
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _commentController,
+                    decoration: const InputDecoration(
+                      hintText: "Nhập bình luận...",
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(width: 8),
+
+                IconButton(
+                  icon: const Icon(Icons.send),
+                  color: Colors.redAccent,
+                  onPressed: () async {
+                    if (_commentController.text.trim().isEmpty) return;
+
+                    final userId = DatabaseHelper().currentUserId;
+
+                    await DatabaseHelper().addComment(
+                      widget.manga.id,
+                      userId,
+                      _commentController.text.trim(),
+                    );
+
+                    _commentController.clear();
+
+                    setState(() {});
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _SliverHeaderDelegate extends SliverPersistentHeaderDelegate {
@@ -528,12 +637,16 @@ class _SliverHeaderDelegate extends SliverPersistentHeaderDelegate {
   final double height;
   _SliverHeaderDelegate({required this.child, required this.height});
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) =>
-      SizedBox.expand(child: child);
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) => SizedBox.expand(child: child);
   @override
   double get maxExtent => height;
   @override
   double get minExtent => height;
   @override
-  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) => false;
+  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) =>
+      false;
 }

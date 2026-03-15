@@ -6,6 +6,9 @@ import 'package:app_truyen_tranh/presentation/Admin_screens/manga_detail_edit_sc
 import 'package:app_truyen_tranh/presentation/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:app_truyen_tranh/logic/auth_bloc/auth_bloc.dart';
+import 'package:app_truyen_tranh/logic/auth_bloc/auth_state.dart';
+import 'package:app_truyen_tranh/data/services/database_helper.dart';
 import 'dart:io';
 
 class ManageMangasScreen extends StatefulWidget {
@@ -16,12 +19,19 @@ class ManageMangasScreen extends StatefulWidget {
 }
 
 class _ManageMangasScreenState extends State<ManageMangasScreen> {
-  
   @override
   void initState() {
     super.initState();
-    // Load dữ liệu ngay khi vào trang
-    context.read<MangaBloc>().add(LoadMangaEvent());
+
+    final authState = context.read<AuthBloc>().state;
+
+    if (authState is AuthAuthenticated) {
+      if (authState.role != "admin") {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          Navigator.pop(context);
+        });
+      }
+    }
   }
 
   // Hàm xử lý khi nhấn Cập nhật - Đợi kết quả trả về để refresh
@@ -29,9 +39,7 @@ class _ManageMangasScreenState extends State<ManageMangasScreen> {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => MangaDetailEditScreen(
-          manga: manga.toJson(),
-        ),
+        builder: (context) => MangaDetailEditScreen(manga: manga.toJson()),
       ),
     );
 
@@ -39,6 +47,58 @@ class _ManageMangasScreenState extends State<ManageMangasScreen> {
     if (result == true && mounted) {
       context.read<MangaBloc>().add(LoadMangaEvent()); // Refresh lại danh sách
     }
+  }
+
+  Future<void> _showComments(BuildContext context, int mangaId) async {
+    final comments = await DatabaseHelper().fetchComments(mangaId);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Bình luận"),
+          content: SizedBox(
+            width: 400,
+            height: 300,
+            child: comments.isEmpty
+                ? const Center(child: Text("Chưa có bình luận"))
+                : ListView.builder(
+                    itemCount: comments.length,
+                    itemBuilder: (context, index) {
+                      final c = comments[index];
+
+                      final authState = context.read<AuthBloc>().state;
+                      final bool isAdmin =
+                          authState is AuthAuthenticated &&
+                          authState.role == "admin";
+
+                      return ListTile(
+                        leading: const Icon(Icons.person),
+                        title: Text(c['username'] ?? "User"),
+                        subtitle: Text(c['content']),
+                        trailing: isAdmin
+                            ? IconButton(
+                                icon: const Icon(Icons.delete),
+                                onPressed: () async {
+                                  await DatabaseHelper().deleteComment(c['id']);
+                                  Navigator.pop(context);
+                                  _showComments(context, mangaId);
+                                },
+                              )
+                            : null,
+                      );
+                    },
+                  ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Đóng"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Widget _buildMangaImage(String path) {
@@ -151,24 +211,44 @@ class _ManageMangasScreenState extends State<ManageMangasScreen> {
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
-                                            manga.latestChapter ?? 'Chưa có chương',
+                                            manga.latestChapter ??
+                                                'Chưa có chương',
                                             style: TextStyle(
                                               color: theme.primaryColor,
                                               fontSize: 13,
                                             ),
                                           ),
-                                          Align(
-                                            alignment: Alignment.centerRight,
-                                            child: TextButton(
-                                              onPressed: () => _navigateToEdit(context, manga),
-                                              child: Text(
-                                                "Cập nhật >",
-                                                style: TextStyle(
-                                                  color: theme.primaryColor,
-                                                  fontWeight: FontWeight.bold,
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.end,
+                                            children: [
+                                              TextButton(
+                                                onPressed: () => _showComments(
+                                                  context,
+                                                  manga.id,
+                                                ),
+                                                child: const Text(
+                                                  "Bình luận",
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
                                                 ),
                                               ),
-                                            ),
+                                              TextButton(
+                                                onPressed: () =>
+                                                    _navigateToEdit(
+                                                      context,
+                                                      manga,
+                                                    ),
+                                                child: Text(
+                                                  "Cập nhật >",
+                                                  style: TextStyle(
+                                                    color: theme.primaryColor,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ],
                                       ),
@@ -192,8 +272,8 @@ class _ManageMangasScreenState extends State<ManageMangasScreen> {
                     child: ElevatedButton(
                       onPressed: () => Navigator.pop(context),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: theme.brightness == Brightness.dark 
-                            ? Colors.grey.shade900 
+                        backgroundColor: theme.brightness == Brightness.dark
+                            ? Colors.grey.shade900
                             : Colors.black,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
