@@ -6,6 +6,7 @@ import 'package:app_truyen_tranh/logic/favorite_bloc/favorite_bloc.dart';
 import 'package:app_truyen_tranh/logic/favorite_bloc/favorite_event.dart';
 import 'package:app_truyen_tranh/logic/history_bloc/history_bloc.dart';
 import 'package:app_truyen_tranh/logic/history_bloc/history_event.dart';
+import 'package:app_truyen_tranh/logic/font_family_cubit.dart';
 import 'package:app_truyen_tranh/presentation/widgets/chapter_navigator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -41,7 +42,7 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
       print("Images list: ${widget.chapter.contentImages}");
     }
     print("==================================");
-    
+
     _loadAllChapters();
     _checkFavoriteStatus();
     _saveToHistory(); // Tự động lưu vào lịch sử khi xem
@@ -58,10 +59,12 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
   // Lưu lịch sử đọc truyện vào SQLite
   void _saveToHistory() {
     // Đảm bảo dùng đúng tên class Event bạn đã định nghĩa trong file history_event.dart
-    context.read<HistoryBloc>().add(AddHistoryEvent(
-      mangaId: widget.chapter.mangaId,
-      chapterId: widget.chapter.id,
-    )); 
+    context.read<HistoryBloc>().add(
+      AddHistoryEvent(
+        mangaId: widget.chapter.mangaId,
+        chapterId: widget.chapter.id,
+      ),
+    );
   }
 
   Future<void> _checkFavoriteStatus() async {
@@ -74,7 +77,9 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
   // Lấy danh sách chương từ MangaChaptersManager
   Future<void> _loadAllChapters() async {
     try {
-      final chapters = await MangaChaptersManager.getChapters(widget.chapter.mangaId);
+      final chapters = await MangaChaptersManager.getChapters(
+        widget.chapter.mangaId,
+      );
       if (mounted) {
         setState(() {
           _allChapters = chapters;
@@ -86,18 +91,23 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
   }
 
   void _navigateToChapter(int direction) {
-    int currentIndex = _allChapters.indexWhere((ch) => ch.id == widget.chapter.id);
+    int currentIndex = _allChapters.indexWhere(
+      (ch) => ch.id == widget.chapter.id,
+    );
     int nextIndex = currentIndex + direction;
 
     if (nextIndex >= 0 && nextIndex < _allChapters.length) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => ChapterDetailScreen(chapter: _allChapters[nextIndex]),
+          builder: (context) =>
+              ChapterDetailScreen(chapter: _allChapters[nextIndex]),
         ),
       );
     } else {
-      _showSimpleSnackBar(direction > 0 ? "Đây đã là chương cuối" : "Đây là chương đầu tiên");
+      _showSimpleSnackBar(
+        direction > 0 ? "Đây đã là chương cuối" : "Đây là chương đầu tiên",
+      );
     }
   }
 
@@ -113,7 +123,9 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
       context: context,
       backgroundColor: const Color(0xFF1A1A1A),
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(25))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+      ),
       builder: (context) {
         return DraggableScrollableSheet(
           initialChildSize: 0.6,
@@ -123,10 +135,24 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
             return Column(
               children: [
                 const SizedBox(height: 12),
-                Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white12, borderRadius: BorderRadius.circular(2))),
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.white12,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
                 const Padding(
                   padding: EdgeInsets.all(20),
-                  child: Text("Danh sách chương", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                  child: Text(
+                    "Danh sách chương",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
                 const Divider(color: Colors.white10, height: 1),
                 Expanded(
@@ -137,15 +163,38 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
                       final chapter = _allChapters[index];
                       bool isCurrent = chapter.id == widget.chapter.id;
                       return ListTile(
-                        leading: Text("${index + 1}", style: TextStyle(color: isCurrent ? Colors.redAccent : Colors.white38)),
-                        title: Text(chapter.chapterName, style: TextStyle(color: isCurrent ? Colors.redAccent : Colors.white70)),
-                        trailing: isCurrent ? const Icon(Icons.import_contacts, color: Colors.redAccent, size: 18) : null,
+                        leading: Text(
+                          "${index + 1}",
+                          style: TextStyle(
+                            color: isCurrent
+                                ? Colors.redAccent
+                                : Colors.white38,
+                          ),
+                        ),
+                        title: Text(
+                          chapter.chapterName,
+                          style: TextStyle(
+                            color: isCurrent
+                                ? Colors.redAccent
+                                : Colors.white70,
+                          ),
+                        ),
+                        trailing: isCurrent
+                            ? const Icon(
+                                Icons.import_contacts,
+                                color: Colors.redAccent,
+                                size: 18,
+                              )
+                            : null,
                         onTap: () {
                           Navigator.pop(context);
                           if (!isCurrent) {
                             Navigator.pushReplacement(
                               context,
-                              MaterialPageRoute(builder: (context) => ChapterDetailScreen(chapter: chapter)),
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    ChapterDetailScreen(chapter: chapter),
+                              ),
                             );
                           }
                         },
@@ -169,130 +218,167 @@ class _ChapterDetailScreenState extends State<ChapterDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
-        Navigator.pop(context, true);
-      },
-      child: Scaffold(
-        backgroundColor: Colors.black,
-        body: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: AppConstants.maxContentWidth),
-            child: Stack(
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _showUI = !_showUI;
-                      if (!_showUI) _showQuickMenu = false;
-                    });
-                  },
-                  child: ListView.builder(
-                    controller: _scrollController,
-                    padding: EdgeInsets.zero,
-                    itemCount: widget.chapter.contentImages.length,
-                    itemBuilder: (context, index) {
-                      return Image.network(
-                        widget.chapter.contentImages[index],
-                        fit: BoxFit.contain,
-                        width: double.infinity,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Container(
-                            height: 600,
-                            color: Colors.white.withAlpha(5),
-                            child: const Center(child: CircularProgressIndicator(color: Colors.redAccent)),
+    return BlocBuilder<FontFamilyCubit, String>(
+      builder: (context, fontFamily) {
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, result) {
+            if (didPop) return;
+            Navigator.pop(context, true);
+          },
+          child: Scaffold(
+            backgroundColor: Colors.black,
+            body: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: AppConstants.maxContentWidth,
+                ),
+                child: Stack(
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _showUI = !_showUI;
+                          if (!_showUI) _showQuickMenu = false;
+                        });
+                      },
+                      child: ListView.builder(
+                        controller: _scrollController,
+                        padding: EdgeInsets.zero,
+                        itemCount: widget.chapter.contentImages.length,
+                        itemBuilder: (context, index) {
+                          return Image.network(
+                            widget.chapter.contentImages[index],
+                            fit: BoxFit.contain,
+                            width: double.infinity,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Container(
+                                height: 600,
+                                color: Colors.white.withAlpha(5),
+                                child: const Center(
+                                  child: CircularProgressIndicator(
+                                    color: Colors.redAccent,
+                                  ),
+                                ),
+                              );
+                            },
+                            errorBuilder: (context, error, stackTrace) =>
+                                Container(
+                                  height: 200,
+                                  color: Colors.grey[900],
+                                  child: const Icon(
+                                    Icons.broken_image,
+                                    color: Colors.white24,
+                                  ),
+                                ),
                           );
                         },
-                        errorBuilder: (context, error, stackTrace) => Container(
-                          height: 200,
-                          color: Colors.grey[900],
-                          child: const Icon(Icons.broken_image, color: Colors.white24),
+                      ),
+                    ),
+                    Positioned(
+                      top: MediaQuery.of(context).padding.top + 10,
+                      left: 10,
+                      child: CircleAvatar(
+                        backgroundColor: Colors.black54,
+                        child: IconButton(
+                          icon: const Icon(
+                            Icons.arrow_back,
+                            color: Colors.white,
+                          ),
+                          onPressed: () => Navigator.pop(context, true),
                         ),
-                      );
-                    },
-                  ),
-                ),
-                Positioned(
-                  top: MediaQuery.of(context).padding.top + 10,
-                  left: 10,
-                  child: CircleAvatar(
-                    backgroundColor: Colors.black54,
-                    child: IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.white),
-                      onPressed: () => Navigator.pop(context, true),
+                      ),
                     ),
-                  ),
-                ),
-                ChapterNavigator(
-                  show: _showUI,
-                  chapterName: widget.chapter.chapterName,
-                  isFavorite: _isFavorite,
-                  onPrev: () => _navigateToChapter(-1),
-                  onNext: () => _navigateToChapter(1),
-                  onTitleTap: _showChapterList,
-                  onFavoriteTap: () async {
-                    HapticFeedback.lightImpact();
-                    context.read<FavoriteBloc>().add(ToggleFavoriteEvent(widget.chapter.mangaId));
-                    setState(() => _isFavorite = !_isFavorite);
-                    _showSimpleSnackBar(_isFavorite ? "Đã thêm vào yêu thích!" : "Đã xóa khỏi yêu thích");
-                  },
-                ),
-                QuickMenu(
-                  show: _showQuickMenu,
-                  onHomeTap: () {
-                    Navigator.pop(context, true);
-                    AppState.changeTab(0, context);
-                  },
-                  onFavoriteTap: () {
-                    context.read<FavoriteBloc>().add(LoadFavoritesEvent());
-                    Navigator.pop(context, true);
-                    AppState.changeTab(1, context);
-                  },
-                  onHistoryTap: () {
-                    context.read<HistoryBloc>().add(LoadHistoryEvent());
-                    Navigator.pop(context, true);
-                    AppState.changeTab(2, context);
-                  },
-                  onProfileTap: () {
-                    Navigator.pop(context, true);
-                    AppState.changeTab(3, context);
-                  },
-                  onCloseTap: () => setState(() => _showQuickMenu = false),
-                ),
-                AnimatedPositioned(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeOutQuart,
-                  bottom: _showQuickMenu ? -100 : (_showUI ? 110 : -100),
-                  right: 20,
-                  child: FloatingActionButton(
-                    heroTag: "chapter_menu",
-                    backgroundColor: Colors.redAccent,
-                    mini: true,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                    onPressed: () => setState(() => _showQuickMenu = true),
-                    child: const Icon(Icons.menu_open_rounded, color: Colors.white),
-                  ),
-                ),
-                if (_showBackToTop && !_showUI)
-                  Positioned(
-                    bottom: 30,
-                    right: 20,
-                    child: FloatingActionButton(
-                      mini: true,
-                      heroTag: "btnTop",
-                      backgroundColor: Colors.redAccent.withAlpha(200),
-                      onPressed: () => _scrollController.animateTo(0, duration: const Duration(milliseconds: 500), curve: Curves.easeOut),
-                      child: const Icon(Icons.arrow_upward, color: Colors.white, size: 20),
+                    ChapterNavigator(
+                      show: _showUI,
+                      chapterName: widget.chapter.chapterName,
+                      isFavorite: _isFavorite,
+                      onPrev: () => _navigateToChapter(-1),
+                      onNext: () => _navigateToChapter(1),
+                      onTitleTap: _showChapterList,
+                      onFavoriteTap: () async {
+                        HapticFeedback.lightImpact();
+                        context.read<FavoriteBloc>().add(
+                          ToggleFavoriteEvent(widget.chapter.mangaId),
+                        );
+                        setState(() => _isFavorite = !_isFavorite);
+                        _showSimpleSnackBar(
+                          _isFavorite
+                              ? "Đã thêm vào yêu thích!"
+                              : "Đã xóa khỏi yêu thích",
+                        );
+                      },
+                      titleStyle: TextStyle(fontFamily: fontFamily),
                     ),
-                  ),
-              ],
+                    QuickMenu(
+                      show: _showQuickMenu,
+                      onHomeTap: () {
+                        Navigator.pop(context, true);
+                        AppState.changeTab(0, context);
+                      },
+                      onFavoriteTap: () {
+                        context.read<FavoriteBloc>().add(LoadFavoritesEvent());
+                        Navigator.pop(context, true);
+                        AppState.changeTab(1, context);
+                      },
+                      onHistoryTap: () {
+                        context.read<HistoryBloc>().add(LoadHistoryEvent());
+                        Navigator.pop(context, true);
+                        AppState.changeTab(2, context);
+                      },
+                      onProfileTap: () {
+                        Navigator.pop(context, true);
+                        AppState.changeTab(3, context);
+                      },
+                      onCloseTap: () => setState(() => _showQuickMenu = false),
+                    ),
+                    AnimatedPositioned(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeOutQuart,
+                      bottom: _showQuickMenu ? -100 : (_showUI ? 110 : -100),
+                      right: 20,
+                      child: FloatingActionButton(
+                        heroTag: "chapter_menu",
+                        backgroundColor: Colors.redAccent,
+                        mini: true,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        onPressed: () => setState(() => _showQuickMenu = true),
+                        child: const Icon(
+                          Icons.menu_open_rounded,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    if (_showBackToTop && !_showUI)
+                      Positioned(
+                        bottom: 30,
+                        right: 20,
+                        child: FloatingActionButton(
+                          mini: true,
+                          heroTag: "btnTop",
+                          backgroundColor: Colors.redAccent.withAlpha(200),
+                          onPressed: () => _scrollController.animateTo(
+                            0,
+                            duration: const Duration(milliseconds: 500),
+                            curve: Curves.easeOut,
+                          ),
+                          child: const Icon(
+                            Icons.arrow_upward,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

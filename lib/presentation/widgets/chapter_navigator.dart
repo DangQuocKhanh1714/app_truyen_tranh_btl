@@ -8,6 +8,7 @@ class ChapterNavigator extends StatelessWidget {
   final VoidCallback onFavoriteTap;
   final VoidCallback onTitleTap; // Thêm callback để mở danh sách chương
   final bool isFavorite;
+  final TextStyle? titleStyle;
 
   const ChapterNavigator({
     super.key,
@@ -18,6 +19,7 @@ class ChapterNavigator extends StatelessWidget {
     required this.onFavoriteTap,
     required this.onTitleTap, // Thêm vào constructor
     this.isFavorite = false,
+    this.titleStyle,
   });
 
   @override
@@ -39,7 +41,11 @@ class ChapterNavigator extends StatelessWidget {
         child: Row(
           children: [
             IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+              icon: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
               onPressed: onPrev,
             ),
             Expanded(
@@ -52,7 +58,13 @@ class ChapterNavigator extends StatelessWidget {
                     children: [
                       Text(
                         chapterName,
-                        style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
+                        style:
+                            titleStyle ??
+                            const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
                         overflow: TextOverflow.ellipsis,
                       ),
                       const Text(
@@ -65,10 +77,18 @@ class ChapterNavigator extends StatelessWidget {
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 20),
+              icon: const Icon(
+                Icons.arrow_forward_ios_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
               onPressed: onNext,
             ),
-            const VerticalDivider(color: Colors.white10, indent: 15, endIndent: 15),
+            const VerticalDivider(
+              color: Colors.white10,
+              indent: 15,
+              endIndent: 15,
+            ),
             IconButton(
               icon: Icon(
                 isFavorite ? Icons.favorite : Icons.favorite_border,

@@ -5,6 +5,8 @@ import 'package:app_truyen_tranh/data/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../Admin_screens/admin_management_screen.dart';
+import 'settings_screen.dart';
+import 'support_feedback_screen.dart';
 // Thêm import AppState để chuyển tab
 import 'package:app_truyen_tranh/core/app_state.dart';
 import 'auth/login_screen.dart';
@@ -161,8 +163,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                     ),
                     child: Column(
                       children: [
-                        if (state is AuthAuthenticated &&
-                            state.role == "admin")
+                        if (state is AuthAuthenticated && state.role == "admin")
                           _buildMenuItem(
                             Icons.admin_panel_settings,
                             "Admin Management",
@@ -203,7 +204,14 @@ class _ProfileScreenState extends State<ProfileScreen>
                         _buildMenuItem(
                           Icons.settings_outlined,
                           "Cài đặt ứng dụng",
-                          () {},
+                          () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const SettingsScreen(),
+                              ),
+                            );
+                          },
                         ),
                         const Divider(
                           color: Colors.white10,
@@ -214,7 +222,14 @@ class _ProfileScreenState extends State<ProfileScreen>
                         _buildMenuItem(
                           Icons.help_outline,
                           "Hỗ trợ & Góp ý",
-                          () {},
+                          () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const SupportFeedbackScreen(),
+                              ),
+                            );
+                          },
                         ),
                       ],
                     ),

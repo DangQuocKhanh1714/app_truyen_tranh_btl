@@ -3,6 +3,7 @@ class CommentModel {
   final int mangaId;
   final String userId;
   final String content;
+  final String? icon;
   final DateTime createdAt;
   final String? username; // Thêm để hiển thị tên người bình luận
 
@@ -11,6 +12,7 @@ class CommentModel {
     required this.mangaId,
     required this.userId,
     required this.content,
+    this.icon,
     required this.createdAt,
     this.username,
   });
@@ -21,6 +23,7 @@ class CommentModel {
       mangaId: map['manga_id'] as int,
       userId: map['user_id'] as String,
       content: map['content'] as String,
+      icon: map['icon'] as String?,
       createdAt: DateTime.parse(map['created_at'] as String),
       username: map['username'] as String?, // Lấy từ lệnh JOIN với bảng users
     );

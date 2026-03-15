@@ -37,8 +37,14 @@ class DatabaseHelper {
     return await dbFactory.openDatabase(
       path,
       options: OpenDatabaseOptions(
-        version: 1, // Reset version về 1 cho db mới
+        version: 2, // Bump version to apply schema migrations
         onCreate: _onCreate,
+        onUpgrade: (db, oldVersion, newVersion) async {
+          if (oldVersion < 2) {
+            // Add icon column to comments if missing
+            await db.execute('ALTER TABLE comments ADD COLUMN icon TEXT');
+          }
+        },
       ),
     );
   }
@@ -140,6 +146,7 @@ class DatabaseHelper {
         manga_id INTEGER,
         user_id TEXT,
         content TEXT NOT NULL,
+        icon TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (manga_id) REFERENCES mangas (id) ON DELETE CASCADE
       )
@@ -523,13 +530,19 @@ class DatabaseHelper {
     );
   }
 
-  Future<int> addComment(int mangaId, String userId, String content) async {
+  Future<int> addComment(
+    int mangaId,
+    String userId,
+    String content, {
+    String? icon,
+  }) async {
     final db = await database;
 
     return await db.insert('comments', {
       'manga_id': mangaId,
       'user_id': userId,
       'content': content,
+      'icon': icon,
       'created_at': DateTime.now().toIso8601String(),
     });
   }

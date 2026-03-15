@@ -23,10 +23,13 @@ import 'logic/manga_bloc/manga_bloc.dart';
 import 'logic/manga_bloc/manga_event.dart';
 import 'logic/search_bloc/search_bloc.dart';
 import 'logic/theme_bloc/theme_bloc.dart';
+import 'logic/font_size_cubit.dart';
+import 'logic/font_family_cubit.dart';
 import 'logic/category_bloc/category_bloc.dart';
 import 'logic/favorite_bloc/favorite_bloc.dart';
 import 'logic/history_bloc/history_bloc.dart';
 import 'logic/user_bloc/user_bloc.dart';
+import 'data/services/push_notification_service.dart';
 
 // Presentation Layer
 import 'presentation/screens/home_screen.dart';
@@ -59,6 +62,7 @@ void main() async {
     debugPrint("Lỗi Database: $e");
   }
 
+  await PushNotificationService.init();
   runApp(MyApp(authService: authService, dbHelper: dbHelper));
 }
 
@@ -86,20 +90,35 @@ class MyApp extends StatelessWidget {
         BlocProvider<FavoriteBloc>(create: (context) => FavoriteBloc(dbHelper)),
         BlocProvider<HistoryBloc>(create: (context) => HistoryBloc(dbHelper)),
         BlocProvider<UserBloc>(create: (context) => UserBloc(dbHelper)),
+        BlocProvider<FontSizeCubit>(create: (context) => FontSizeCubit()),
+        BlocProvider<FontFamilyCubit>(create: (context) => FontFamilyCubit()),
       ],
       child: BlocBuilder<ThemeBloc, ThemeMode>(
         builder: (context, mode) {
-          return MaterialApp(
-            title: 'DNU Manga App',
-            debugShowCheckedModeBanner: false,
-            themeMode: mode,
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
-            initialRoute: '/',
-            routes: {
-              '/': (context) => const AuthWrapper(),
-              '/home': (context) => const HomeScreen(),
-              '/login': (context) => const LoginScreen(),
+          return BlocBuilder<FontSizeCubit, double>(
+            builder: (context, fontScale) {
+              return MaterialApp(
+                title: 'DNU Manga App',
+                debugShowCheckedModeBanner: false,
+                themeMode: mode,
+                theme: AppTheme.lightTheme,
+                darkTheme: AppTheme.darkTheme,
+                builder: (context, child) {
+                  // Áp dụng tỷ lệ cỡ chữ toàn cục
+                  return MediaQuery(
+                    data: MediaQuery.of(
+                      context,
+                    ).copyWith(textScaleFactor: fontScale),
+                    child: child ?? const SizedBox.shrink(),
+                  );
+                },
+                initialRoute: '/',
+                routes: {
+                  '/': (context) => const AuthWrapper(),
+                  '/home': (context) => const HomeScreen(),
+                  '/login': (context) => const LoginScreen(),
+                },
+              );
             },
           );
         },

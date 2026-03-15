@@ -27,6 +27,7 @@ class _MangaDetailScreenState extends State<MangaDetailScreen> {
   bool _isLoadingFavorite = false;
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _commentController = TextEditingController();
+  String? _selectedIcon;
 
   @override
   void initState() {
@@ -41,6 +42,38 @@ class _MangaDetailScreenState extends State<MangaDetailScreen> {
         _isFavorite = status;
       });
     }
+  }
+
+  void _showIconPicker() {
+    final icons = ['😀', '😂', '😍', '👍', '👎', '❤️', '🔥', '💯', '😢', '😡'];
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Chọn icon'),
+        content: Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: icons
+              .map(
+                (icon) => GestureDetector(
+                  onTap: () {
+                    setState(() => _selectedIcon = icon);
+                    Navigator.pop(context);
+                  },
+                  child: Text(icon, style: const TextStyle(fontSize: 30)),
+                ),
+              )
+              .toList(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Hủy'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showAllCategoriesSheet() {
@@ -578,6 +611,7 @@ class _MangaDetailScreenState extends State<MangaDetailScreen> {
                   itemBuilder: (context, index) {
                     final c = comments[index];
 
+                    final icon = (c['icon'] as String?)?.trim();
                     return ListTile(
                       leading: const Icon(Icons.person),
                       title: Text(c['username'] ?? "User"),
@@ -595,9 +629,33 @@ class _MangaDetailScreenState extends State<MangaDetailScreen> {
                 Expanded(
                   child: TextField(
                     controller: _commentController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       hintText: "Nhập bình luận...",
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
+                      prefixIcon: Padding(
+                        padding: const EdgeInsets.only(left: 8.0, right: 4.0),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: _showIconPicker,
+                          child: Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.redAccent.withOpacity(0.8),
+                                width: 1.5,
+                              ),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              _selectedIcon ?? '😀',
+                              style: const TextStyle(fontSize: 26),
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -611,14 +669,22 @@ class _MangaDetailScreenState extends State<MangaDetailScreen> {
                     if (_commentController.text.trim().isEmpty) return;
 
                     final userId = DatabaseHelper().currentUserId;
+                    final commentText = _commentController.text.trim();
+                    final content =
+                        (_selectedIcon?.isNotEmpty == true
+                            ? '${_selectedIcon!} '
+                            : '') +
+                        commentText;
 
                     await DatabaseHelper().addComment(
                       widget.manga.id,
                       userId,
-                      _commentController.text.trim(),
+                      content,
+                      icon: _selectedIcon,
                     );
 
                     _commentController.clear();
+                    _selectedIcon = null;
 
                     setState(() {});
                   },
