@@ -10,6 +10,7 @@ import 'package:app_truyen_tranh/logic/auth_bloc/auth_bloc.dart';
 import 'package:app_truyen_tranh/logic/auth_bloc/auth_state.dart';
 import 'package:app_truyen_tranh/data/services/database_helper.dart';
 import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 
 class ManageMangasScreen extends StatefulWidget {
   const ManageMangasScreen({super.key});
@@ -19,6 +20,8 @@ class ManageMangasScreen extends StatefulWidget {
 }
 
 class _ManageMangasScreenState extends State<ManageMangasScreen> {
+  final ImagePicker _picker = ImagePicker();
+
   @override
   void initState() {
     super.initState();
@@ -99,6 +102,34 @@ class _ManageMangasScreenState extends State<ManageMangasScreen> {
         );
       },
     );
+  }
+
+  Future<void> _uploadMangaImage(BuildContext context, dynamic manga) async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null && mounted) {
+      try {
+        final db = await DatabaseHelper().database;
+        await db.update(
+          'mangas',
+          {'image_url': image.path},
+          where: 'id = ?',
+          whereArgs: [manga.id],
+        );
+
+        if (mounted) {
+          context.read<MangaBloc>().add(LoadMangaEvent()); // Refresh danh sách
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Cập nhật ảnh thành công!")),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Lỗi cập nhật ảnh: $e")),
+          );
+        }
+      }
+    }
   }
 
   Widget _buildMangaImage(String path) {
@@ -197,7 +228,9 @@ class _ManageMangasScreenState extends State<ManageMangasScreen> {
                                       child: Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
-                                        mainAxisAlignment:
+             
+             
+                                      mainAxisAlignment:
                                             MainAxisAlignment.center,
                                         children: [
                                           Text(
@@ -222,6 +255,17 @@ class _ManageMangasScreenState extends State<ManageMangasScreen> {
                                             mainAxisAlignment:
                                                 MainAxisAlignment.end,
                                             children: [
+                                              TextButton.icon(
+                                                onPressed: () => _uploadMangaImage(
+                                                  context,
+                                                  manga,
+                                                ),
+                                                icon: const Icon(Icons.photo_camera, size: 16),
+                                                label: const Text("Upload Ảnh"),
+                                                style: TextButton.styleFrom(
+                                                  foregroundColor: Colors.blue,
+                                                ),
+                                              ),
                                               TextButton(
                                                 onPressed: () => _showComments(
                                                   context,

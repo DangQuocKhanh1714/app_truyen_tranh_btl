@@ -4,6 +4,8 @@ import 'package:app_truyen_tranh/data/services/database_helper.dart';
 import 'package:app_truyen_tranh/presentation/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:app_truyen_tranh/presentation/Admin_screens/manga_chapter_screen.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class MangaDetailEditScreen extends StatefulWidget {
   final Map<String, dynamic> manga;
@@ -23,23 +25,27 @@ class _MangaDetailEditScreenState extends State<MangaDetailEditScreen> {
   List<String> allGenres = [];
   bool _isLoadingGenres = true;
 
+  File? _selectedImage; // Ảnh đã chọn
+  final ImagePicker _picker = ImagePicker();
+
   @override
-void initState() {
-  super.initState();
-  _titleController = TextEditingController(text: widget.manga['title']);
-  _authorController = TextEditingController(text: widget.manga['author']);
-  _descController = TextEditingController(text: widget.manga['description']);
+  void initState() {
+    super.initState();
+    _titleController = TextEditingController(text: widget.manga['title']);
+    _authorController = TextEditingController(text: widget.manga['author']);
+    _descController = TextEditingController(text: widget.manga['description']);
 
-  // 1. Khởi tạo danh sách các thể loại đã được chọn của truyện
-  if (widget.manga['genres'] != null && widget.manga['genres'].toString().isNotEmpty) {
-    selectedGenres = widget.manga['genres'].toString().split(', ').toList();
-  } else {
-    selectedGenres = [];
+    // 1. Khởi tạo danh sách các thể loại đã được chọn của truyện
+    if (widget.manga['genres'] != null &&
+        widget.manga['genres'].toString().isNotEmpty) {
+      selectedGenres = widget.manga['genres'].toString().split(', ').toList();
+    } else {
+      selectedGenres = [];
+    }
+
+    // 2. QUAN TRỌNG: Phải gọi hàm này để tải danh sách nhãn dán từ DB lên
+    _loadGenresFromDatabase();
   }
-
-  // 2. QUAN TRỌNG: Phải gọi hàm này để tải danh sách nhãn dán từ DB lên
-  _loadGenresFromDatabase(); 
-}
 
   Future<void> _loadGenresFromDatabase() async {
     try {
@@ -56,6 +62,15 @@ void initState() {
     }
   }
 
+  Future<void> _pickImage() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      setState(() {
+        _selectedImage = File(image.path);
+      });
+    }
+  }
+
   Future<void> _handleSave() async {
     if (_titleController.text.trim().isEmpty) {
       // Thông báo lỗi...
@@ -64,17 +79,24 @@ void initState() {
 
     try {
       final db = await DatabaseHelper().database;
-      
+
       // Chuyển List thành String để lưu vào cột TEXT trong SQLite
       String genresToSave = selectedGenres.join(', ');
-      debugPrint("Đang lưu thể loại: $genresToSave"); // Xem nó có in ra đúng không
+      debugPrint(
+        "Đang lưu thể loại: $genresToSave",
+      ); // Xem nó có in ra đúng không
 
       final Map<String, dynamic> updatedData = {
         'title': _titleController.text.trim(),
         'author': _authorController.text.trim(),
         'description': _descController.text.trim(),
-        'genres': genresToSave, 
+        'genres': genresToSave,
       };
+
+      // Nếu có ảnh mới, cập nhật image_url
+      if (_selectedImage != null) {
+        updatedData['image_url'] = _selectedImage!.path;
+      }
 
       int result = await db.update(
         'mangas',
@@ -89,7 +111,7 @@ void initState() {
     } catch (e) {
       debugPrint("Lỗi Database: $e");
     }
-}
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -181,20 +203,41 @@ void initState() {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: Image.network(
-            widget.manga['image_url'] ?? '',
-            width: 110,
-            height: 160,
-            fit: BoxFit.cover,
-            errorBuilder: (c, e, s) => Container(
-              width: 110,
-              height: 160,
-              color: Colors.grey[300],
-              child: const Icon(Icons.image_not_supported),
+        Column(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: _selectedImage != null
+                  ? Image.file(
+                      _selectedImage!,
+                      width: 110,
+                      height: 160,
+                      fit: BoxFit.cover,
+                    )
+                  : Image.network(
+                      widget.manga['image_url'] ?? '',
+                      width: 110,
+                      height: 160,
+                      fit: BoxFit.cover,
+                      errorBuilder: (c, e, s) => Container(
+                        width: 110,
+                        height: 160,
+                        color: Colors.grey[300],
+                        child: const Icon(Icons.image_not_supported),
+                      ),
+                    ),
             ),
-          ),
+            const SizedBox(height: 10),
+            ElevatedButton.icon(
+              onPressed: _pickImage,
+              icon: const Icon(Icons.photo_library),
+              label: const Text("Chọn ảnh"),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: theme.primaryColor,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ],
         ),
         const SizedBox(width: 20),
         Expanded(
@@ -233,39 +276,46 @@ void initState() {
   }
 
   Widget _buildGenreSection(ThemeData theme) {
-  if (_isLoadingGenres) {
-    return const Center(child: CircularProgressIndicator());
-  }
-  
-  if (allGenres.isEmpty) {
-    return const Text("Không có thể loại nào trong hệ thống", style: TextStyle(color: Colors.grey));
-  }
+    if (_isLoadingGenres) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
-  return Wrap(
-    spacing: 8.0,
-    runSpacing: 4.0,
-    children: allGenres.map((genre) {
-      // Chuẩn hóa tên để so sánh chính xác
-      final isSelected = selectedGenres.any((element) => element.trim() == genre.trim());
-      
-      return FilterChip(
-        label: Text(genre),
-        selected: isSelected,
-        selectedColor: Colors.green.withOpacity(0.3),
-        checkmarkColor: Colors.green,
-        onSelected: (bool selected) {
-          setState(() {
-            if (selected) {
-              if (!selectedGenres.contains(genre)) selectedGenres.add(genre);
-            } else {
-              selectedGenres.removeWhere((element) => element.trim() == genre.trim());
-            }
-          });
-        },
+    if (allGenres.isEmpty) {
+      return const Text(
+        "Không có thể loại nào trong hệ thống",
+        style: TextStyle(color: Colors.grey),
       );
-    }).toList(),
-  );
-}
+    }
+
+    return Wrap(
+      spacing: 8.0,
+      runSpacing: 4.0,
+      children: allGenres.map((genre) {
+        // Chuẩn hóa tên để so sánh chính xác
+        final isSelected = selectedGenres.any(
+          (element) => element.trim() == genre.trim(),
+        );
+
+        return FilterChip(
+          label: Text(genre),
+          selected: isSelected,
+          selectedColor: Colors.green.withOpacity(0.3),
+          checkmarkColor: Colors.green,
+          onSelected: (bool selected) {
+            setState(() {
+              if (selected) {
+                if (!selectedGenres.contains(genre)) selectedGenres.add(genre);
+              } else {
+                selectedGenres.removeWhere(
+                  (element) => element.trim() == genre.trim(),
+                );
+              }
+            });
+          },
+        );
+      }).toList(),
+    );
+  }
 
   Widget _buildDescriptionSection(ThemeData theme, bool isDark) {
     return TextField(

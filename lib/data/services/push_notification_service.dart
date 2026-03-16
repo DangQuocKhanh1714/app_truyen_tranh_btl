@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 /// Background message handler must be a top-level function.
@@ -15,6 +16,11 @@ class PushNotificationService {
 
   /// Khởi tạo Firebase Messaging và local notification.
   static Future<void> init() async {
+    // Chỉ khởi tạo push notifications trên mobile platforms, không phải web
+    if (kIsWeb) {
+      return; // Skip initialization on web
+    }
+
     // Yêu cầu quyền thông báo (iOS/macOS)
     if (Platform.isIOS || Platform.isMacOS) {
       await _messaging.requestPermission(
