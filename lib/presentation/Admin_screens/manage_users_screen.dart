@@ -1,5 +1,6 @@
 import 'package:app_truyen_tranh/core/constants.dart';
 import 'package:app_truyen_tranh/data/services/database_helper.dart';
+import 'package:app_truyen_tranh/presentation/admin_screens/add_user_screen.dart';
 import 'package:app_truyen_tranh/presentation/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 
@@ -31,38 +32,61 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
     super.dispose();
   }
 
+  // SỬA: Dùng DatabaseHelper.instance và thêm try-catch
   Future<void> _loadUsers() async {
+    if (!mounted) return;
     setState(() => _isLoading = true);
-    final data = await DatabaseHelper().getUsers();
-    setState(() {
-      _users = data;
-      _filteredUsers = data;
-      _isLoading = false;
-    });
+    
+    try {
+      // Đảm bảo bạn đã khai báo static final instance trong DatabaseHelper
+      final data = await DatabaseHelper.instance.getUsers();
+      
+      setState(() {
+        _users = data;
+        _filteredUsers = data;
+        _isLoading = false;
+        // Cập nhật câu phân tích AI cơ bản luôn
+        _aiAnalysis = "Hệ thống ghi nhận ${_users.length} thành viên. Nhấn 'Làm mới' để phân tích.";
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+      _showSnackBar("Không thể tải danh sách: $e", Colors.red);
+    }
   }
 
   void _onSearchChanged() {
     setState(() {
       _filteredUsers = _users
-          .where((user) =>
-              (user['username'] ?? '').toLowerCase().contains(_searchController.text.toLowerCase()) ||
-              (user['email'] ?? '').toLowerCase().contains(_searchController.text.toLowerCase()))
+          .where(
+            (user) =>
+                (user['username'] ?? '').toLowerCase().contains(
+                      _searchController.text.toLowerCase(),
+                    ) ||
+                (user['email'] ?? '').toLowerCase().contains(
+                      _searchController.text.toLowerCase(),
+                    ),
+          )
           .toList();
     });
   }
 
   Future<void> _analyzeWithAi() async {
     setState(() => _isAiAnalyzing = true);
-    await Future.delayed(const Duration(seconds: 1));
+    await Future.delayed(const Duration(milliseconds: 800));
     setState(() {
-      _aiAnalysis = "Hệ thống ghi nhận ${_users.length} thành viên. Tỷ lệ tương tác ổn định. Gợi ý: Tổ chức sự kiện tri ân cho nhóm hoạt động tích cực.";
+      _aiAnalysis =
+          "Hệ thống ghi nhận ${_users.length} thành viên. Tỷ lệ tương tác ổn định. Gợi ý: Tổ chức sự kiện cho nhóm tích cực.";
       _isAiAnalyzing = false;
     });
   }
 
   void _showSnackBar(String message, Color color) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: color, behavior: SnackBarBehavior.floating),
+      SnackBar(
+        content: Text(message),
+        backgroundColor: color,
+        behavior: SnackBarBehavior.floating,
+      ),
     );
   }
 
@@ -76,20 +100,20 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: AppConstants.maxContentWidth),
+            constraints: const BoxConstraints(
+              maxWidth: AppConstants.maxContentWidth,
+            ),
             child: Column(
               children: [
-                // 1. Custom AppBar điều khiển màu theo bóng đèn
                 const CustomAppBar(),
-
-                // 2. Header & Search
                 _buildModernHeader(theme, isDark),
-
-                // 3. Main Content
                 Expanded(
                   child: _isLoading
                       ? const Center(child: CircularProgressIndicator())
-                      : _buildMainList(theme, isDark),
+                      : RefreshIndicator( // Thêm vuốt để refresh cho chuyên nghiệp
+                          onRefresh: _loadUsers,
+                          child: _buildMainList(theme, isDark),
+                        ),
                 ),
               ],
             ),
@@ -100,45 +124,55 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
   }
 
   Widget _buildModernHeader(ThemeData theme, bool isDark) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            // NÚT BACK TỰ CHẾ CHO ĐẸP
-            GestureDetector(
-              onTap: () => Navigator.pop(context),
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: isDark ? Colors.white10 : Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(Icons.arrow_back_ios_new, 
-                  size: 18, 
-                  color: theme.textTheme.titleLarge?.color
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.white10 : Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.arrow_back_ios_new,
+                    size: 18,
+                    color: theme.textTheme.titleLarge?.color,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(width: 15),
-            Text(
-              "Người dùng",
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: theme.textTheme.titleLarge?.color,
+              const SizedBox(width: 15),
+              Text(
+                "Người dùng",
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: theme.textTheme.titleLarge?.color,
+                ),
               ),
-            ),
-            const Spacer(),
-            IconButton(
-              onPressed: () => _showSnackBar("Tính năng đang phát triển", Colors.blue),
-              icon: Icon(Icons.person_add_alt_1, color: theme.primaryColor),
-            ),
-          ],
-        ),
-        const SizedBox(height: 15),
+              const Spacer(),
+              IconButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AddUserScreen(),
+                    ),
+                  ).then((_) {
+                    // SỬA: Đợi một chút để SQLite kịp commit rồi mới load
+                    Future.delayed(const Duration(milliseconds: 300), () => _loadUsers());
+                  });
+                },
+                icon: Icon(Icons.person_add_alt_1, color: theme.primaryColor),
+              ),
+            ],
+          ),
+          const SizedBox(height: 15),
           TextField(
             controller: _searchController,
             style: TextStyle(color: theme.textTheme.bodyLarge?.color),
@@ -162,6 +196,8 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
 
   Widget _buildMainList(ThemeData theme, bool isDark) {
     return ListView(
+      // Bỏ padding mặc định của ListView để tránh lỗi scroll
+      physics: const AlwaysScrollableScrollPhysics(), 
       padding: const EdgeInsets.symmetric(horizontal: 20),
       children: [
         _buildAiCard(),
@@ -170,11 +206,16 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
           Center(
             child: Padding(
               padding: const EdgeInsets.only(top: 40),
-              child: Text("Không tìm thấy kết quả", style: TextStyle(color: theme.hintColor)),
+              child: Text(
+                "Không có dữ liệu người dùng",
+                style: TextStyle(color: theme.hintColor),
+              ),
             ),
           )
         else
-          ..._filteredUsers.map((user) => _buildUserItem(user, theme, isDark)).toList(),
+          ..._filteredUsers
+              .map((user) => _buildUserItem(user, theme, isDark))
+              .toList(),
         const SizedBox(height: 50),
       ],
     );
@@ -195,7 +236,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
             color: const Color(0xFF6366F1).withOpacity(0.3),
             blurRadius: 12,
             offset: const Offset(0, 4),
-          )
+          ),
         ],
       ),
       child: Column(
@@ -208,59 +249,89 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
                 children: [
                   Icon(Icons.auto_awesome, color: Colors.white, size: 18),
                   SizedBox(width: 8),
-                  Text("AI PHÂN TÍCH",
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                  Text(
+                    "AI PHÂN TÍCH",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
                 ],
               ),
               GestureDetector(
                 onTap: _isAiAnalyzing ? null : _analyzeWithAi,
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
-                  child: Text(_isAiAnalyzing ? "..." : "Làm mới ✨",
-                      style: const TextStyle(color: Colors.white, fontSize: 10)),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    _isAiAnalyzing ? "..." : "Làm mới ✨",
+                    style: const TextStyle(color: Colors.white, fontSize: 10),
+                  ),
                 ),
-              )
+              ),
             ],
           ),
           const SizedBox(height: 10),
-          Text(_aiAnalysis,
-              style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 13, fontStyle: FontStyle.italic)),
+          Text(
+            _aiAnalysis,
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.9),
+              fontSize: 13,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
         ],
       ),
     );
   }
 
   Widget _buildUserItem(Map<String, dynamic> user, ThemeData theme, bool isDark) {
+    // SỬA: Lấy role để hiển thị tag cho đẹp
+    final String role = user['role'] ?? 'user';
+    
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: isDark ? Colors.transparent : Colors.grey.shade200),
-        boxShadow: [
-          if (!isDark)
-            BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))
-        ],
+        border: Border.all(
+          color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade200,
+        ),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         leading: CircleAvatar(
-          backgroundColor: theme.primaryColor.withOpacity(0.1),
+          backgroundColor: role == 'admin' ? Colors.amber.withOpacity(0.1) : theme.primaryColor.withOpacity(0.1),
           child: Text(
             (user['username'] ?? 'U')[0].toUpperCase(),
-            style: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              color: role == 'admin' ? Colors.orange : theme.primaryColor,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
-        title: Text(
-          user['username'] ?? "N/A",
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: theme.textTheme.bodyLarge?.color),
+        title: Row(
+          children: [
+            Text(
+              user['username'] ?? "N/A",
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            ),
+            if (role == 'admin') ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(color: Colors.amber, borderRadius: BorderRadius.circular(4)),
+                child: const Text("ADMIN", style: TextStyle(fontSize: 8, color: Colors.black, fontWeight: FontWeight.bold)),
+              )
+            ]
+          ],
         ),
-        subtitle: Text(
-          user['email'] ?? "",
-          style: TextStyle(fontSize: 12, color: theme.textTheme.bodyMedium?.color?.withOpacity(0.6)),
-        ),
-        trailing: Icon(Icons.chevron_right, color: theme.hintColor),
+        subtitle: Text(user['email'] ?? ""),
+        trailing: Icon(Icons.more_vert, color: theme.hintColor),
         onTap: () => _showUserActions(user, theme),
       ),
     );
@@ -270,7 +341,9 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: theme.cardColor,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (context) => Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -299,7 +372,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text("Xác nhận xóa"),
-        content: Text("Bạn có chắc chắn muốn xóa người dùng '$name'?"),
+        content: Text("Bạn có chắc chắn muốn xóa người dùng '$name' khỏi hệ thống?"),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("HỦY")),
           TextButton(
@@ -311,9 +384,13 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
     );
 
     if (confirm == true) {
-      await DatabaseHelper().deleteUser(id);
-      _loadUsers();
-      _showSnackBar("Đã xóa người dùng thành công", Colors.blueGrey);
+      try {
+        await DatabaseHelper.instance.deleteUser(id);
+        _loadUsers();
+        _showSnackBar("Đã xóa người dùng thành công", Colors.green);
+      } catch (e) {
+        _showSnackBar("Lỗi khi xóa: $e", Colors.red);
+      }
     }
   }
 }

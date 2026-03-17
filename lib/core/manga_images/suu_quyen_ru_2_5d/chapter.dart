@@ -1,3 +1,6 @@
+import 'package:app_truyen_tranh/core/manga_images/suu_quyen_ru_2_5d/images.dart';
+
+
 /// Model cho một chương truyện
 class Chapter {
   final int id;
@@ -11,13 +14,15 @@ class Chapter {
   });
 }
 
-/// Quản lý tất cả các chương của Sưu Quyển Rú 2.5D
-class SuuQuyenRu25dChapters {
-  static const List<Chapter> chapters = [
-    // TODO: Thêm chapters tương ứng
+
+/// Quản lý tất cả các chương của Sự Quyến Rũ Của 2.5D
+class Cosplay25dChapters {
+  static final List<Chapter> chapters = [
+    Chapter(id: 1, name: 'Chương 1: Nhân Vật Khác Biệt', images: Cosplay25dImages.chapter1Images),
+    Chapter(id: 2, name: 'Chương 2: Tiềm Năng Cosplay', images: Cosplay25dImages.chapter2Images),
+    Chapter(id: 3, name: 'Chương 3: Cùng Nhau Chế Tạo', images: Cosplay25dImages.chapter3Images),
   ];
 
-  /// Lấy chương theo ID
   static Chapter? getChapterById(int id) {
     try {
       return chapters.firstWhere((chapter) => chapter.id == id);
@@ -26,13 +31,6 @@ class SuuQuyenRu25dChapters {
     }
   }
 
-  /// Lấy tất cả các chương
-  static List<Chapter> getAllChapters() {
-    return chapters;
-  }
-
-  /// Tổng số chương
-  static int getTotalChapters() {
-    return chapters.length;
-  }
+  static List<Chapter> getAllChapters() => chapters;
+  static int getTotalChapters() => chapters.length;
 }

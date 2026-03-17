@@ -1,4 +1,4 @@
-/// Model cho một chương truyện
+import 'package:app_truyen_tranh/core/manga_images/jojo_bizarre_adventure/images.dart';
 class Chapter {
   final int id;
   final String name;
@@ -10,14 +10,21 @@ class Chapter {
     required this.images,
   });
 }
-
-/// Quản lý tất cả các chương của JoJo's Bizarre Adventure
-class JojoBizarreAdventureChapters {
-  static const List<Chapter> chapters = [
-    // TODO: Thêm chapters tương ứng
+/// Quản lý tất cả các chương của Jojo
+class JojoChapters {
+  static final List<Chapter> chapters = [
+    Chapter(
+      id: 199, 
+      name: 'Chương 199', 
+      images: JojoImages.chapter199Images
+    ),
+    Chapter(
+      id: 200, 
+      name: 'Chương 200', 
+      images: JojoImages.chapter200Images
+    ),
   ];
 
-  /// Lấy chương theo ID
   static Chapter? getChapterById(int id) {
     try {
       return chapters.firstWhere((chapter) => chapter.id == id);
@@ -26,13 +33,6 @@ class JojoBizarreAdventureChapters {
     }
   }
 
-  /// Lấy tất cả các chương
-  static List<Chapter> getAllChapters() {
-    return chapters;
-  }
-
-  /// Tổng số chương
-  static int getTotalChapters() {
-    return chapters.length;
-  }
+  static List<Chapter> getAllChapters() => chapters;
+  static int getTotalChapters() => chapters.length;
 }

@@ -1,3 +1,5 @@
+import 'package:app_truyen_tranh/core/manga_images/chainsaw_man/images.dart';
+
 /// Model cho một chương truyện
 class Chapter {
   final int id;
@@ -13,11 +15,12 @@ class Chapter {
 
 /// Quản lý tất cả các chương của Chainsaw Man
 class ChainsawManChapters {
-  static const List<Chapter> chapters = [
-    // TODO: Thêm chapters tương ứng
+  static final List<Chapter> chapters = [
+    Chapter(id: 1, name: 'Chương 1', images: ChainsawManImages.chapter1Images),
+    Chapter(id: 2, name: 'Chương 2', images: ChainsawManImages.chapter2Images),
+    Chapter(id: 3, name: 'Chương 3', images: ChainsawManImages.chapter3Images),
   ];
 
-  /// Lấy chương theo ID
   static Chapter? getChapterById(int id) {
     try {
       return chapters.firstWhere((chapter) => chapter.id == id);
@@ -26,13 +29,6 @@ class ChainsawManChapters {
     }
   }
 
-  /// Lấy tất cả các chương
-  static List<Chapter> getAllChapters() {
-    return chapters;
-  }
-
-  /// Tổng số chương
-  static int getTotalChapters() {
-    return chapters.length;
-  }
+  static List<Chapter> getAllChapters() => chapters;
+  static int getTotalChapters() => chapters.length;
 }

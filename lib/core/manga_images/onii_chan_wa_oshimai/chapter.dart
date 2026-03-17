@@ -1,6 +1,8 @@
+import 'package:app_truyen_tranh/core/manga_images/onii_chan_wa_oshimai/images.dart';
+
 /// Model cho một chương truyện
 class Chapter {
-  final int id;
+  final double id; // Sử dụng double để hỗ trợ chương 1.5
   final String name;
   final List<String> images;
 
@@ -10,15 +12,16 @@ class Chapter {
     required this.images,
   });
 }
-
-/// Quản lý tất cả các chương của Onii-chan wa Oshimai
-class OniiChanWaOshimaiChapters {
-  static const List<Chapter> chapters = [
-    // TODO: Thêm chapters tương ứng
+/// Quản lý tất cả các chương của Onii-Chan Wa Oshimai!
+class OniichanChapters {
+  static final List<Chapter> chapters = [
+    Chapter(id: 1.0, name: 'Chương 1: Mahiro và cơ thể mới', images: OniichanImages.chapter1Images),
+    Chapter(id: 1.5, name: 'Chương 1.5: Ngoại truyện', images: OniichanImages.chapter1_5Images),
+    Chapter(id: 2.0, name: 'Chương 2: Mahiro và tháng đó', images: OniichanImages.chapter2Images),
+    Chapter(id: 3.0, name: 'Chương 3: Mahiro và việc giặt giũ', images: OniichanImages.chapter3Images),
   ];
 
-  /// Lấy chương theo ID
-  static Chapter? getChapterById(int id) {
+  static Chapter? getChapterById(double id) {
     try {
       return chapters.firstWhere((chapter) => chapter.id == id);
     } catch (e) {
@@ -26,13 +29,6 @@ class OniiChanWaOshimaiChapters {
     }
   }
 
-  /// Lấy tất cả các chương
-  static List<Chapter> getAllChapters() {
-    return chapters;
-  }
-
-  /// Tổng số chương
-  static int getTotalChapters() {
-    return chapters.length;
-  }
+  static List<Chapter> getAllChapters() => chapters;
+  static int getTotalChapters() => chapters.length;
 }

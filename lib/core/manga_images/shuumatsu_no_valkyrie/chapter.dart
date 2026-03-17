@@ -1,5 +1,4 @@
-import 'package:app_truyen_tranh/core/manga_images/citrus/images.dart';
-
+import 'package:app_truyen_tranh/core/manga_images/shuumatsu_no_valkyrie/images.dart';
 
 /// Model cho một chương truyện
 class Chapter {
@@ -14,24 +13,12 @@ class Chapter {
   });
 }
 
-/// Quản lý tất cả các chương của Citrus
-class CitrusChapters {
+/// Quản lý tất cả các chương của Shuumatsu no Valkyrie
+class ValkyrieChapters {
   static final List<Chapter> chapters = [
-    Chapter(
-      id: 1.0, 
-      name: 'Chương 1', 
-      images: CitrusImages.chapter1Images
-    ),
-    Chapter(
-      id: 1.1, 
-      name: 'Chương 1.1', 
-      images: CitrusImages.chapter1_1Images
-    ),
-    Chapter(
-      id: 1.2, 
-      name: 'Chương 1.2', 
-      images: CitrusImages.chapter1_2Images
-    ),
+    Chapter(id: 1.0, name: 'Chương 1: Ragnarok', images: ValkyrieImages.chapter1Images),
+    Chapter(id: 2.0, name: 'Chương 2: Đỉnh cao', images: ValkyrieImages.chapter2Images),
+    Chapter(id: 2.5, name: 'Chương 2.5: Ngoại truyện', images: ValkyrieImages.chapter2_5Images),
   ];
 
   static Chapter? getChapterById(double id) {

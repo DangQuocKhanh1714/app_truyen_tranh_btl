@@ -3,12 +3,23 @@ import 'package:path/path.dart';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
-import '../../core/manga_images/tinh_giap_hon_tuong/chapter.dart';
-import '../../core/manga_images/solo_leveling_ragnarok/chapter.dart';
+import 'package:app_truyen_tranh/core/manga_images/chainsaw_man/chapter.dart';
+import 'package:app_truyen_tranh/core/manga_images/citrus/chapter.dart';
+import 'package:app_truyen_tranh/core/manga_images/grand_blue/chapter.dart';
+import 'package:app_truyen_tranh/core/manga_images/jojo_bizarre_adventure/chapter.dart';
+import 'package:app_truyen_tranh/core/manga_images/ong_chong_yakuza/chapter.dart';
+import 'package:app_truyen_tranh/core/manga_images/onii_chan_wa_oshimai/chapter.dart';
+import 'package:app_truyen_tranh/core/manga_images/shuumatsu_no_valkyrie/chapter.dart';
+import 'package:app_truyen_tranh/core/manga_images/solo_leveling_ragnarok/chapter.dart';
+import 'package:app_truyen_tranh/core/manga_images/suu_quyen_ru_2_5d/chapter.dart';
+import 'package:app_truyen_tranh/core/manga_images/tinh_giap_hon_tuong/chapter.dart';
+import 'package:app_truyen_tranh/core/manga_images/toi_da_bien_nguoi_ban/chapter.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
   static Database? _database;
+  static final DatabaseHelper instance = DatabaseHelper._init();
+  DatabaseHelper._init(); // Constructor nội bộ
 
   factory DatabaseHelper() => _instance;
   DatabaseHelper._internal();
@@ -67,11 +78,13 @@ class DatabaseHelper {
 
   // --- 1. KHỞI TẠO CẤU TRÚC BẢNG ---
   Future<void> _onCreate(Database db, int version) async {
+    // Câu lệnh khởi tạo bảng chuẩn
     await db.execute('''
       CREATE TABLE users (
         id TEXT PRIMARY KEY,
         email TEXT,
         username TEXT,
+        password TEXT,
         avatar_url TEXT,
         firebase_uid TEXT,
         role TEXT DEFAULT 'user',
@@ -84,19 +97,19 @@ class DatabaseHelper {
     );
 
     await db.execute('''
-  CREATE TABLE mangas (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
-    alt_title TEXT,
-    image_url TEXT,
-    description TEXT,
-    author TEXT,
-    status TEXT,
-    genres TEXT, -- THÊM DÒNG NÀY ĐỂ LƯU THỂ LOẠI
-    views INTEGER DEFAULT 0,
-    likes INTEGER DEFAULT 0
-  )
-''');
+      CREATE TABLE mangas (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        alt_title TEXT,
+        image_url TEXT,
+        description TEXT,
+        author TEXT,
+        status TEXT,
+        genres TEXT, -- THÊM DÒNG NÀY ĐỂ LƯU THỂ LOẠI
+        views INTEGER DEFAULT 0,
+        likes INTEGER DEFAULT 0
+      )
+    ''');
 
     await db.execute('''
       CREATE TABLE manga_categories (
@@ -196,16 +209,52 @@ class DatabaseHelper {
 
     await _seedMangaList(db);
 
+    // ID 1: Tinh Giáp Hồn Tướng
     await _seedChaptersForManga(
       db,
       1,
       TinhGiapHonTuongChapters.getAllChapters(),
     );
+
+    // ID 2: Chainsaw Man
+    await _seedChaptersForManga(db, 2, ChainsawManChapters.getAllChapters());
+
+    // ID 3: Solo Leveling Ragnarok
     await _seedChaptersForManga(
       db,
       3,
       SoloLevelingRagnarokChapters.getAllChapters(),
     );
+
+    // ID 4: Citrus (Lưu ý: Đảm bảo model Chapter đã nhận kiểu double cho ID nếu cần)
+    await _seedChaptersForManga(db, 4, CitrusChapters.getAllChapters());
+
+    // ID 5: Jojo's Bizarre Adventure
+    await _seedChaptersForManga(db, 5, JojoChapters.getAllChapters());
+
+    // ID 6: Boku No Pico (đang phát triển)
+
+    // ID 7: Onii-Chan Wa Oshimai!
+    await _seedChaptersForManga(db, 7, OniichanChapters.getAllChapters());
+
+    // ID 8: Sự Quyến Rũ Của 2.5D
+    await _seedChaptersForManga(db, 8, Cosplay25dChapters.getAllChapters());
+
+    // ID 9: Grand Blue
+    await _seedChaptersForManga(db, 9, GrandBlueChapters.getAllChapters());
+
+    // ID 10: Shuumatsu no Valkyrie
+    await _seedChaptersForManga(db, 10, ValkyrieChapters.getAllChapters());
+
+    // ID 11: Tôi Đã Biến Người Bạn Thơ Ấu Thành Con Gái
+    await _seedChaptersForManga(
+      db,
+      11,
+      ChildhoodFriendChapters.getAllChapters(),
+    );
+
+    // ID 12: Ông Chồng Yakuza
+    await _seedChaptersForManga(db, 12, YakuzaHusbandChapters.getAllChapters());
 
     await _seedMangaCategoryMapping(db);
     // Kiểm tra xem đã có truyện nào chưa
@@ -258,8 +307,8 @@ class DatabaseHelper {
       },
       {
         "id": 2,
-        "title": "Chainsaw Man",
-        "alt_title": "Thợ Săn Quỷ",
+        "title": "Chainsaw Man 2 ",
+        "alt_title": "Thợ Săn Quỷ phần 2",
         "image_url":
             "https://upload.wikimedia.org/wikipedia/vi/2/24/Chainsawman.jpg",
         "description": "Cậu thiếu niên Denji...",
@@ -333,6 +382,33 @@ class DatabaseHelper {
         "author": "Đang cập nhật",
         "status": "Đang cập nhật",
       },
+      {
+        "id": 10,
+        "title": "Shuumatsu no Valkyrie",
+        "image_url":
+            "https://cdn1.fahasa.com/media/catalog/product/1/_/1_174_23.jpg",
+        "description": "Các vị thần mở hội nghị...",
+        "author": "Fukui Takumi",
+        "status": "Đang cập nhật",
+      },
+      {
+        "id": 11,
+        "title": "Tôi Đã Biến Người Bạn Thơ Ấu Thành Con Gái",
+        "image_url":
+            "https://upload.wikimedia.org/wikipedia/vi/thumb/0/0e/Koisuru_(Otome)_no_Tsukurikata_volume_1_cover.png/250px-Koisuru_(Otome)_no_Tsukurikata_volume_1_cover.png",
+        "description": "Hm... một anh chàng thích trang điểm...",
+        "author": "Đang cập nhật",
+        "status": "Đang cập nhật",
+      },
+      {
+        "id": 12,
+        "title": "Ông Chồng Yakuza",
+        "image_url":
+            "https://gamek.mediacdn.vn/133514250583805952/2020/7/12/635e08d0d1189c8775b78c1370b3c16a-1594517328876586368720.png",
+        "description": "Ông Chồng Yakuza Nội Trợ là một trong...",
+        "author": "Đang cập nhật",
+        "status": "Đang cập nhật",
+      },
     ];
 
     for (var m in mangaData) {
@@ -349,21 +425,30 @@ class DatabaseHelper {
 
   Future<void> _seedMangaCategoryMapping(Database db) async {
     final list = [
+      // ID 1: Tinh Giáp Hồn Tướng (Action, Manhua, Isekai, Shounen, Truyện Màu)
       {"manga_id": 1, "category_id": 1},
       {"manga_id": 1, "category_id": 4},
       {"manga_id": 1, "category_id": 11},
       {"manga_id": 1, "category_id": 18},
       {"manga_id": 1, "category_id": 19},
+
+      // ID 2: Chainsaw Man 2 (Action, Supernatural, Shounen)
       {"manga_id": 2, "category_id": 1},
       {"manga_id": 2, "category_id": 15},
       {"manga_id": 2, "category_id": 18},
+
+      // ID 3: Solo Leveling Ragnarok (Action, Manhwa, Isekai)
       {"manga_id": 3, "category_id": 1},
       {"manga_id": 3, "category_id": 5},
       {"manga_id": 3, "category_id": 11},
+
+      // ID 4: Citrus (Yuri, Comedy, School Life, Shoujo)
       {"manga_id": 4, "category_id": 8},
       {"manga_id": 4, "category_id": 14},
       {"manga_id": 4, "category_id": 16},
       {"manga_id": 4, "category_id": 20},
+
+      // ID 5: Jojo's Bizarre Adventure (Action, Manga, Yaoi, Harem, Supernatural, Adventure, Shounen)
       {"manga_id": 5, "category_id": 1},
       {"manga_id": 5, "category_id": 3},
       {"manga_id": 5, "category_id": 7},
@@ -371,23 +456,49 @@ class DatabaseHelper {
       {"manga_id": 5, "category_id": 15},
       {"manga_id": 5, "category_id": 17},
       {"manga_id": 5, "category_id": 18},
+
+      // ID 6: Boku No Pico (Action, Yaoi, Saygex, Ecchi)
       {"manga_id": 6, "category_id": 1},
       {"manga_id": 6, "category_id": 7},
       {"manga_id": 6, "category_id": 10},
       {"manga_id": 6, "category_id": 13},
+
+      // ID 7: Onii-Chan Wa Oshimai! (Yuri, Slice of life, Comedy, School Life, Gender Bender)
       {"manga_id": 7, "category_id": 8},
       {"manga_id": 7, "category_id": 9},
       {"manga_id": 7, "category_id": 14},
       {"manga_id": 7, "category_id": 16},
       {"manga_id": 7, "category_id": 21},
+
+      // ID 8: Sự Quyến Rũ Của 2.5D (Harem, Ecchi, Comedy, School Life)
       {"manga_id": 8, "category_id": 12},
       {"manga_id": 8, "category_id": 13},
       {"manga_id": 8, "category_id": 14},
       {"manga_id": 8, "category_id": 16},
+
+      // ID 9: Grand Blue (Manga, Slice of life, Ecchi, School Life)
       {"manga_id": 9, "category_id": 3},
       {"manga_id": 9, "category_id": 9},
       {"manga_id": 9, "category_id": 13},
       {"manga_id": 9, "category_id": 16},
+
+      // ID 10: Shuumatsu no Valkyrie (Action, Supernatural, Adventure, Shounen)
+      {"manga_id": 10, "category_id": 1},
+      {"manga_id": 10, "category_id": 15},
+      {"manga_id": 10, "category_id": 17},
+      {"manga_id": 10, "category_id": 18},
+
+      // ID 11: Tôi Đã Biến Người Bạn Thơ Ấu Thành Con Gái (Romance, Comedy, School Life, Gender Bender)
+      {"manga_id": 11, "category_id": 2},
+      {"manga_id": 11, "category_id": 14},
+      {"manga_id": 11, "category_id": 16},
+      {"manga_id": 11, "category_id": 21},
+
+      // ID 12: Ông Chồng Yakuza (Action, Romance, Slice of life, Comedy)
+      {"manga_id": 12, "category_id": 1},
+      {"manga_id": 12, "category_id": 2},
+      {"manga_id": 12, "category_id": 9},
+      {"manga_id": 12, "category_id": 14},
     ];
 
     for (var mc in list) {
@@ -723,5 +834,15 @@ class DatabaseHelper {
     } catch (e) {
       print("Cột đã tồn tại hoặc có lỗi: $e");
     }
+  }
+
+  // Thêm vào trong class DatabaseHelper
+  Future<int> insertUser(Map<String, dynamic> user) async {
+    final db = await database;
+    return await db.insert(
+      'users',
+      user,
+      conflictAlgorithm: ConflictAlgorithm.replace, // Nếu trùng ID sẽ ghi đè
+    );
   }
 }

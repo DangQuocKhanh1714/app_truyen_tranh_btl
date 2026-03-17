@@ -1,4 +1,5 @@
 // import 'package:app_truyen_tranh/presentation/Admin_screens/admin_management_screen.dart';
+import 'package:app_truyen_tranh/presentation/Admin_screens/admin_management_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/app_state.dart';
@@ -112,6 +113,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: SafeArea(
                         child: CustomBottomNav(
                           currentIndex: _selectedIndex,
+                          isAdmin: isAdmin,
+                          onAdminTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const AdminManagementScreen(),
+                              ),
+                            );
+                          },
                           onTap: (index) {
                             setState(() {
                               _selectedIndex = index;
@@ -155,81 +165,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
 
-                if (isAdmin)
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
-                      child: InkWell(
-                        onTap: () {
-                          // --- ĐIỀU HƯỚNG ĐẾN ADMIN MANAGEMENT ---
-                          // Navigator.push(
-                          //   context,
-                          //   MaterialPageRoute(builder: (_) => const AdminManagementScreen()),
-                          // );
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF2C3E50), Color(0xFF4CA1AF)],
-                            ),
-                            borderRadius: BorderRadius.circular(15),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.2),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.admin_panel_settings,
-                                  color: Colors.amber,
-                                  size: 28,
-                                ),
-                              ),
-                              const SizedBox(width: 15),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: const [
-                                    Text(
-                                      "Bảng điều khiển Admin",
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                    Text(
-                                      "Quản lý truyện, chương và người dùng",
-                                      style: TextStyle(
-                                        color: Colors.white70,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const Icon(
-                                Icons.arrow_forward_ios,
-                                color: Colors.white54,
-                                size: 16,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+                
 
                 _buildMangaSection(),
                 const SliverToBoxAdapter(child: SizedBox(height: 100)),
