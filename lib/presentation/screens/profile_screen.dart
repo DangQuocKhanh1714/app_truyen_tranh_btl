@@ -163,19 +163,19 @@ class _ProfileScreenState extends State<ProfileScreen>
                     ),
                     child: Column(
                       children: [
-                        if (state is AuthAuthenticated && state.role == "admin")
-                          _buildMenuItem(
-                            Icons.admin_panel_settings,
-                            "Admin Management",
-                            () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const AdminManagementScreen(),
-                                ),
-                              );
-                            },
-                          ),
+                        // if (state is AuthAuthenticated && state.role == "admin")
+                        //   _buildMenuItem(
+                        //     Icons.admin_panel_settings,
+                        //     "Admin Management",
+                        //     () {
+                        //       Navigator.push(
+                        //         context,
+                        //         MaterialPageRoute(
+                        //           builder: (_) => const AdminManagementScreen(),
+                        //         ),
+                        //       );
+                        //     },
+                        //   ),
 
                         // Chuyển đến tab Lịch sử (Giả định tab 1)
                         _buildMenuItem(
