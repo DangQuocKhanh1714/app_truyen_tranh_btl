@@ -61,14 +61,20 @@ class MangaChaptersManager {
     }).toList();
   }
 
-  static Future<void> addChapter({required int mangaId, required String name, required String images}) async {
-    final db = await DatabaseHelper().database;
+  static Future<void> addChapter(ChapterModel chapter) async {
+    final db = await DatabaseHelper.instance.database;
+    
+    // Chuyển List<String> thành chuỗi "url1,url2" để lưu vào SQLite
+    String imagesString = chapter.contentImages.join(',');
+
     await db.insert('chapters', {
-      'manga_id': mangaId,
-      'chapter_name': name,
-      'content_images': images,
+      'manga_id': chapter.mangaId,
+      'chapter_name': chapter.chapterName,
+      'content_images': imagesString,
+      'created_at': chapter.createdAt,
     });
-    await _updateMangaChapterCount(mangaId);
+    
+    await _updateMangaChapterCount(chapter.mangaId);
   }
 
   // HÀM GÂY LỖI: Bây giờ đã nhận 2 tham số đồng bộ với UI
@@ -78,11 +84,17 @@ class MangaChaptersManager {
     await _updateMangaChapterCount(mangaId);
   }
 
-  static Future<void> updateChapter({required int chapterId, required String name, required String images}) async {
-    final db = await DatabaseHelper().database;
+  static Future<void> updateChapter(ChapterModel chapter) async {
+    final db = await DatabaseHelper.instance.database;
+    String imagesString = chapter.contentImages.join(',');
+
     await db.update('chapters', 
-      {'chapter_name': name, 'content_images': images},
-      where: 'id = ?', whereArgs: [chapterId]
+      {
+        'chapter_name': chapter.chapterName, 
+        'content_images': imagesString
+      },
+      where: 'id = ?', 
+      whereArgs: [chapter.id]
     );
   }
 

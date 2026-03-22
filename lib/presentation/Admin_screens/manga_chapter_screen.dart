@@ -43,24 +43,26 @@ class _ManageChaptersScreenState extends State<ManageChaptersScreen> {
         child: Center(
           // Giới hạn khoảng cách bề ngang cho cả AppBar và Nội dung
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: AppConstants.maxContentWidth),
+            constraints: const BoxConstraints(
+              maxWidth: AppConstants.maxContentWidth,
+            ),
             child: Column(
               children: [
-                // 1. Custom AppBar (Đã bỏ container đỏ cũ)
                 const CustomAppBar(),
 
-                // 2. Modern Header
                 _buildModernHeader(theme, isDark),
 
-                // 3. Main Content
                 Expanded(
                   child: _isLoading
                       ? const Center(child: CircularProgressIndicator())
                       : _chapters.isEmpty
-                          ? Center(
-                              child: Text("Chưa có chương nào",
-                                  style: TextStyle(color: theme.hintColor)))
-                          : _buildChapterList(theme, isDark),
+                      ? Center(
+                          child: Text(
+                            "Chưa có chương nào",
+                            style: TextStyle(color: theme.hintColor),
+                          ),
+                        )
+                      : _buildChapterList(theme, isDark),
                 ),
               ],
             ),
@@ -86,8 +88,11 @@ class _ManageChaptersScreenState extends State<ManageChaptersScreen> {
                     color: isDark ? Colors.white10 : Colors.grey.shade100,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(Icons.arrow_back_ios_new,
-                      size: 18, color: theme.textTheme.titleLarge?.color),
+                  child: Icon(
+                    Icons.arrow_back_ios_new,
+                    size: 18,
+                    color: theme.textTheme.titleLarge?.color,
+                  ),
                 ),
               ),
               const SizedBox(width: 15),
@@ -105,14 +110,21 @@ class _ManageChaptersScreenState extends State<ManageChaptersScreen> {
               ),
               IconButton(
                 onPressed: _showAddChapterDialog,
-                icon: Icon(Icons.add_circle_outline, color: theme.primaryColor, size: 28),
+                icon: Icon(
+                  Icons.add_circle_outline,
+                  color: theme.primaryColor,
+                  size: 28,
+                ),
               ),
             ],
           ),
           const SizedBox(height: 10),
           Text(
             "Tổng số: ${_chapters.length} chương",
-            style: TextStyle(color: theme.hintColor, fontWeight: FontWeight.w500),
+            style: TextStyle(
+              color: theme.hintColor,
+              fontWeight: FontWeight.w500,
+            ),
           ),
           const Divider(height: 25),
         ],
@@ -131,13 +143,16 @@ class _ManageChaptersScreenState extends State<ManageChaptersScreen> {
           decoration: BoxDecoration(
             color: theme.cardColor,
             borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: isDark ? Colors.white10 : Colors.grey.shade200),
+            border: Border.all(
+              color: isDark ? Colors.white10 : Colors.grey.shade200,
+            ),
             boxShadow: [
               if (!isDark)
                 BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4))
+                  color: Colors.black.withOpacity(0.03),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
             ],
           ),
           child: ListTile(
@@ -170,11 +185,17 @@ class _ManageChaptersScreenState extends State<ManageChaptersScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.edit_outlined, color: Colors.blueAccent),
+                  icon: const Icon(
+                    Icons.edit_outlined,
+                    color: Colors.blueAccent,
+                  ),
                   onPressed: () => _editChapter(chapter),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                  icon: const Icon(
+                    Icons.delete_outline,
+                    color: Colors.redAccent,
+                  ),
                   onPressed: () => _confirmDelete(chapter),
                 ),
               ],
@@ -187,8 +208,170 @@ class _ManageChaptersScreenState extends State<ManageChaptersScreen> {
 
   // --- Giữ nguyên các hàm Logic (Dialogs) bên dưới của bạn ---
   // (Lưu ý: Bạn có thể cập nhật style các ElevatedButton trong Dialog sang theme.primaryColor)
-  
-  void _showAddChapterDialog() { /* Code cũ của bạn */ }
-  void _editChapter(ChapterModel chapter) { /* Code cũ của bạn */ }
-  void _confirmDelete(ChapterModel chapter) { /* Code cũ của bạn */ }
+
+  void _showAddChapterDialog() {
+    final nameController = TextEditingController();
+    final urlsController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Thêm chương mới"),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: "Tên chương (VD: Chương 10)",
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: urlsController,
+                maxLines: 5,
+                decoration: const InputDecoration(
+                  labelText: "Link ảnh (mỗi link 1 dòng)",
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Hủy"),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (nameController.text.isEmpty) return;
+
+              // Xử lý chuỗi từ TextField thành List<String>
+              List<String> images = urlsController.text
+                  .split('\n')
+                  .map((e) => e.trim())
+                  .where((e) => e.isNotEmpty)
+                  .toList();
+
+              // Tạo Object ChapterModel khớp với hàm addChapter của bạn
+              final newChapter = ChapterModel(
+                id: 0, // SQLite tự tăng nên để 0
+                mangaId: widget.manga.id,
+                chapterName: nameController.text.trim(),
+                contentImages: images,
+                createdAt: DateTime.now().toIso8601String(),
+              );
+
+              await MangaChaptersManager.addChapter(newChapter);
+
+              if (mounted) {
+                Navigator.pop(context);
+                _loadChapters(); // Hàm reload lại danh sách của bạn
+              }
+            },
+            child: const Text("Lưu chương"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _editChapter(ChapterModel chapter) {
+    final nameController = TextEditingController(text: chapter.chapterName);
+    // Hiển thị các link ảnh hiện có, mỗi link một dòng
+    final urlsController = TextEditingController(
+      text: chapter.contentImages.join('\n'),
+    );
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Sửa chương"),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: "Tên chương"),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: urlsController,
+                maxLines: 5,
+                decoration: const InputDecoration(labelText: "Link ảnh"),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Hủy"),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              List<String> updatedImages = urlsController.text
+                  .split('\n')
+                  .map((e) => e.trim())
+                  .where((e) => e.isNotEmpty)
+                  .toList();
+
+              // Tạo Object mới từ dữ liệu đã sửa
+              final updatedChapter = ChapterModel(
+                id: chapter.id,
+                mangaId: chapter.mangaId,
+                chapterName: nameController.text.trim(),
+                contentImages: updatedImages,
+                createdAt: chapter.createdAt,
+              );
+
+              await MangaChaptersManager.updateChapter(updatedChapter);
+
+              if (mounted) {
+                Navigator.pop(context);
+                _loadChapters();
+              }
+            },
+            child: const Text("Cập nhật"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmDelete(ChapterModel chapter) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Xác nhận xóa"),
+        content: Text(
+          "Bạn có chắc chắn muốn xóa ${chapter.chapterName} không?",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Hủy"),
+          ),
+          TextButton(
+            onPressed: () async {
+              // Truyền 2 tham số theo đúng khai báo static Future<void> deleteChapter(int chapterId, int mangaId)
+              await MangaChaptersManager.deleteChapter(
+                chapter.id,
+                widget.manga.id,
+              );
+
+              if (mounted) {
+                Navigator.pop(context);
+                _loadChapters();
+              }
+            },
+            child: const Text("Xóa", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
 }

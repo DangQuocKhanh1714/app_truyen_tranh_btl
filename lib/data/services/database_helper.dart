@@ -564,7 +564,6 @@ class DatabaseHelper {
     );
   }
 
-  // Thay thế hàm cũ (khoảng dòng 348) bằng hàm này:
   Future<int> updateManga(int id, Map<String, dynamic> data) async {
     final db = await database;
     return await db.update(
